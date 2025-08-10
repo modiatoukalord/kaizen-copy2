@@ -42,7 +42,7 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
     },
     {
       accessorKey: 'category',
-      header: 'Category',
+      header: 'Compte',
       cell: ({ row }) => <CategoryBadge category={row.original.category} />,
     },
     {
