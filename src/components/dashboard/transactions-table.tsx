@@ -25,7 +25,7 @@ import type { Transaction } from '@/lib/types';
 import { formatCurrency, cn } from '@/lib/utils';
 import { CategoryBadge } from './category-badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TransactionAccount, TransactionCategory, type Account } from '@/lib/types';
+import { TransactionAccount, TransactionCategory, IncomeCategory, ExpenseCategory } from '@/lib/types';
 
 interface TransactionsTableProps {
   transactions: Transaction[];
@@ -108,13 +108,19 @@ export default function TransactionsTable({ transactions, filterType }: Transact
 
   const dateFilterValue = table.getColumn('date')?.getFilterValue() as string | undefined;
   const selectedDate = dateFilterValue ? new Date(dateFilterValue) : undefined;
+  
+  const categoryFilterOptions = React.useMemo(() => {
+    if (filterType === 'income') return IncomeCategory;
+    if (filterType === 'expense') return ExpenseCategory;
+    return TransactionCategory;
+  }, [filterType]);
 
   return (
     <Card className="h-full">
       <CardHeader>
         <CardTitle>Recent Transactions</CardTitle>
         <CardDescription>A list of your recent financial activities.</CardDescription>
-        <div className="mt-4 flex items-center gap-4">
+        <div className="mt-4 flex flex-wrap items-center gap-4">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -161,6 +167,28 @@ export default function TransactionsTable({ transactions, filterType }: Transact
                 {TransactionAccount.map((acc) => (
                   <SelectItem key={acc} value={acc}>
                     {acc}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={(table.getColumn('category')?.getFilterValue() as string) ?? 'all'}
+              onValueChange={(value) => {
+                  if (value === 'all') {
+                      table.getColumn('category')?.setFilterValue(undefined);
+                  } else {
+                      table.getColumn('category')?.setFilterValue(value);
+                  }
+              }}
+            >
+              <SelectTrigger className="max-w-sm">
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categoryFilterOptions.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
                   </SelectItem>
                 ))}
               </SelectContent>
