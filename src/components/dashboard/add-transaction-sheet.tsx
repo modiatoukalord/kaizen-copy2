@@ -55,7 +55,7 @@ const initialState = {
   success: false,
 };
 
-export function AddTransactionSheet({ children }: { children: React.ReactNode }) {
+export function AddTransactionSheet({ children, type: initialType }: { children: React.ReactNode, type?: 'income' | 'expense' }) {
   const [open, setOpen] = React.useState(false);
   const [isSuggesting, setIsSuggesting] = React.useState(false);
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -65,7 +65,7 @@ export function AddTransactionSheet({ children }: { children: React.ReactNode })
     defaultValues: {
       description: '',
       amount: 0,
-      type: 'expense',
+      type: initialType || 'expense',
       category: 'Other',
       account: 'Banque',
       date: new Date(),
@@ -77,6 +77,12 @@ export function AddTransactionSheet({ children }: { children: React.ReactNode })
   const availableCategories = React.useMemo(() => {
     return transactionType === 'income' ? IncomeCategory : ExpenseCategory;
   }, [transactionType]);
+
+  React.useEffect(() => {
+    if (initialType) {
+        form.setValue('type', initialType);
+    }
+  }, [initialType, form]);
 
   React.useEffect(() => {
     // Reset category if it's not in the available categories for the selected type
@@ -177,19 +183,21 @@ export function AddTransactionSheet({ children }: { children: React.ReactNode })
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Type</Label>
-              <Select name="type" onValueChange={(value) => form.setValue('type', value as 'income' | 'expense')} defaultValue={form.getValues('type')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="expense">Expense</SelectItem>
-                  <SelectItem value="income">Income</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
+            {!initialType && (
+              <div className="space-y-2">
+                <Label>Type</Label>
+                <Select name="type" onValueChange={(value) => form.setValue('type', value as 'income' | 'expense')} defaultValue={form.getValues('type')}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="expense">Expense</SelectItem>
+                    <SelectItem value="income">Income</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className={cn("space-y-2", !initialType ? "" : "col-span-2")}>
               <Label>Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
