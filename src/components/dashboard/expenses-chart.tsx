@@ -6,12 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import type { Transaction } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/contexts/currency-context';
 
 interface ExpensesChartProps {
   transactions: Transaction[];
 }
 
 export default function ExpensesChart({ transactions }: ExpensesChartProps) {
+  const { currency } = useCurrency();
   const chartData = useMemo(() => {
     const expenses = transactions.filter(t => t.type === 'expense');
     const categoryTotals = expenses.reduce((acc, t) => {
@@ -48,10 +50,10 @@ export default function ExpensesChart({ transactions }: ExpensesChartProps) {
             <ChartContainer config={{}} className="h-[300px] w-full">
             <BarChart data={chartData} accessibilityLayer>
                 <XAxis dataKey="category" tickLine={false} axisLine={false} tickMargin={8} />
-                <YAxis tickFormatter={(value) => formatCurrency(value as number).slice(0, -3)} />
+                <YAxis tickFormatter={(value) => formatCurrency(value as number, currency).replace(/\.00$/, '')} />
                 <Tooltip
                     cursor={{ fill: 'hsl(var(--muted))' }}
-                    content={<ChartTooltipContent formatter={(value) => formatCurrency(value as number)} />}
+                    content={<ChartTooltipContent formatter={(value) => formatCurrency(value as number, currency)} />}
                 />
                 <Bar dataKey="total" fill="hsl(var(--primary))" radius={4} />
             </BarChart>

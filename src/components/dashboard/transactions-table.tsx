@@ -27,7 +27,7 @@ import { CategoryBadge } from './category-badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TransactionAccount, TransactionCategory, IncomeCategory, ExpenseCategory } from '@/lib/types';
 import { AddTransactionSheet } from './add-transaction-sheet';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useCurrency } from '@/contexts/currency-context';
 
 
 interface TransactionsTableProps {
@@ -36,8 +36,11 @@ interface TransactionsTableProps {
 }
 
 export default function TransactionsTable({ transactions, filterType }: TransactionsTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: 'date', desc: true },
+  ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const { currency } = useCurrency();
 
   const columns: ColumnDef<Transaction>[] = [
     {
@@ -88,7 +91,7 @@ export default function TransactionsTable({ transactions, filterType }: Transact
           )}
         >
           {row.original.type === 'income' ? '+' : '-'}
-          {formatCurrency(row.original.amount)}
+          {formatCurrency(row.original.amount, currency)}
         </div>
       ),
     },
@@ -123,7 +126,7 @@ export default function TransactionsTable({ transactions, filterType }: Transact
     },
   });
 
-  const dateFilterValue = table.getColumn('date')?.getFilterValue() as string | undefined;
+  const dateFilterValue = table.getColumn('date')?.getFilterValue() as { start?: Date, end?: Date } | undefined;
   
   const categoryFilterOptions = React.useMemo(() => {
     if (filterType === 'income') return IncomeCategory;
@@ -132,11 +135,11 @@ export default function TransactionsTable({ transactions, filterType }: Transact
   }, [filterType]);
 
   return (
-    <Card className="h-full">
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle>Recent Transactions</CardTitle>
         <CardDescription>A list of your recent financial activities.</CardDescription>
-        <div className="mt-4 grid grid-cols-1 items-center gap-4 md:grid-cols-3">
+        <div className="mt-4 grid flex-1 grid-cols-1 items-center gap-4 md:grid-cols-3">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -147,20 +150,26 @@ export default function TransactionsTable({ transactions, filterType }: Transact
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateFilterValue ? format(new Date(dateFilterValue), 'PPP') : <span>Filter by date...</span>}
+                  {dateFilterValue?.start ? (
+                    dateFilterValue.end ? (
+                      <>
+                        {format(dateFilterValue.start, 'LLL dd, y')} -{' '}
+                        {format(dateFilterValue.end, 'LLL dd, y')}
+                      </>
+                    ) : (
+                      format(dateFilterValue.start, 'LLL dd, y')
+                    )
+                  ) : (
+                    <span>Filter by date...</span>
+                  )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
                 <Calendar
-                  mode="single"
-                  selected={dateFilterValue ? new Date(dateFilterValue) : undefined}
-                  onSelect={(date) => {
-                    const currentFilter = table.getColumn('date')?.getFilterValue();
-                    const newFilter = date ? new Date(date.setHours(0,0,0,0)).toISOString() : undefined;
-                    
-                    if (newFilter !== currentFilter) {
-                         table.getColumn('date')?.setFilterValue(newFilter);
-                    }
+                  mode="range"
+                  selected={dateFilterValue}
+                  onSelect={(range) => {
+                     table.getColumn('date')?.setFilterValue(range);
                   }}
                   initialFocus
                 />
@@ -212,7 +221,7 @@ export default function TransactionsTable({ transactions, filterType }: Transact
             </Select>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 overflow-y-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

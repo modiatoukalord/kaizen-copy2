@@ -6,9 +6,19 @@ import { PiggyBank, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AddTransactionSheet } from './add-transaction-sheet';
 import { cn } from '@/lib/utils';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useCurrency } from '@/contexts/currency-context';
 
 export default function DashboardHeader() {
   const pathname = usePathname();
+  const { currency, setCurrency } = useCurrency();
+
 
   const navItems = [
     { href: '/', label: 'Dashboard' },
@@ -43,6 +53,16 @@ export default function DashboardHeader() {
           ))}
       </nav>
       <div className="flex w-full items-center justify-end gap-4 md:ml-auto md:gap-2 lg:gap-4">
+        <Select value={currency} onValueChange={setCurrency}>
+            <SelectTrigger className="w-[100px]">
+                <SelectValue placeholder="Currency" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="USD">USD</SelectItem>
+                <SelectItem value="EUR">EUR</SelectItem>
+                <SelectItem value="XOF">XOF</SelectItem>
+            </SelectContent>
+        </Select>
         <AddTransactionSheet type={transactionType}>
           <Button>
             <PlusCircle className="mr-2 h-4 w-4" />

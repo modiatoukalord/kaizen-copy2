@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import DashboardHeader from '@/components/dashboard/dashboard-header';
+import { CurrencyProvider } from '@/contexts/currency-context';
 
 export const metadata: Metadata = {
   title: 'Financial Compass',
@@ -24,13 +25,15 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <div className="flex min-h-screen w-full flex-col">
-            <DashboardHeader />
-            <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-                {children}
-            </main>
-        </div>
-        <Toaster />
+        <CurrencyProvider>
+          <div className="flex min-h-screen w-full flex-col">
+              <DashboardHeader />
+              <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+                  {children}
+              </main>
+          </div>
+          <Toaster />
+        </CurrencyProvider>
       </body>
     </html>
   );

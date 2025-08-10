@@ -5,10 +5,16 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number, currency = 'USD') {
-  return new Intl.NumberFormat('en-US', {
+export function formatCurrency(amount: number, currency: string = 'USD') {
+  const options: Intl.NumberFormatOptions = {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
-  }).format(amount);
+  };
+
+  if (currency === 'XOF') {
+    options.currencyDisplay = 'code';
+  }
+
+  return new Intl.NumberFormat('en-US', options).format(amount);
 }
