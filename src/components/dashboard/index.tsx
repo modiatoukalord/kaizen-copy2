@@ -13,18 +13,21 @@ import {
   startOfYear,
   endOfYear,
 } from 'date-fns';
-import type { Transaction, Period } from '@/lib/types';
+import type { Transaction, Period, Category } from '@/lib/types';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import DashboardHeader from './dashboard-header';
 import StatCards from './stat-cards';
 import ExpensesChart from './expenses-chart';
 import TransactionsTable from './transactions-table';
+import { cn } from '@/lib/utils';
 
 interface DashboardProps {
   initialTransactions: Transaction[];
+  title?: string;
+  filterType?: 'income' | 'expense';
+  hideCharts?: boolean;
 }
 
-export default function Dashboard({ initialTransactions }: DashboardProps) {
+export default function Dashboard({ initialTransactions, title="Dashboard", filterType, hideCharts = false }: DashboardProps) {
   const [period, setPeriod] = useState<Period>('monthly');
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
 
@@ -51,15 +54,19 @@ export default function Dashboard({ initialTransactions }: DashboardProps) {
         break;
     }
 
-    return transactions.filter(t => isWithinInterval(new Date(t.date), interval));
-  }, [period, transactions]);
+    let periodTransactions = transactions.filter(t => isWithinInterval(new Date(t.date), interval));
+
+    if (filterType) {
+        periodTransactions = periodTransactions.filter(t => t.type === filterType);
+    }
+
+    return periodTransactions;
+  }, [period, transactions, filterType]);
 
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      <DashboardHeader />
-      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+    <>
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{title}</h1>
           <Tabs value={period} onValueChange={(value) => setPeriod(value as Period)} className="space-y-4">
             <TabsList>
               <TabsTrigger value="weekly">Weekly</TabsTrigger>
@@ -73,14 +80,15 @@ export default function Dashboard({ initialTransactions }: DashboardProps) {
         <StatCards transactions={filteredTransactions} />
         
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <div className="col-span-4">
-                <ExpensesChart transactions={filteredTransactions} />
-            </div>
-            <div className="col-span-4 lg:col-span-3">
+            { !hideCharts && (
+                <div className="col-span-4">
+                    <ExpensesChart transactions={filteredTransactions} />
+                </div>
+            )}
+            <div className={cn("col-span-4", !hideCharts && "lg:col-span-3")}>
                 <TransactionsTable transactions={filteredTransactions} />
             </div>
         </div>
-      </main>
-    </div>
+    </>
   );
 }
