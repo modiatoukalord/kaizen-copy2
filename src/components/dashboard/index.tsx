@@ -77,7 +77,7 @@ export default function Dashboard({ initialTransactions, title="Dashboard", filt
           </Tabs>
         </div>
         
-        <StatCards transactions={filteredTransactions} />
+        <StatCards transactions={filteredTransactions} filterType={filterType} />
         
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             { !hideCharts && (
