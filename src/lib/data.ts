@@ -14,7 +14,7 @@ if (!global.transactions) {
     { id: '8', date: new Date(new Date().setDate(20)).toISOString(), description: 'Billets de cinéma', amount: 20000, category: 'Divertissement', type: 'expense', account: 'Espèces' },
     { id: '9', date: new Date(new Date().setDate(1)).toISOString(), description: 'Projet Freelance', amount: 600000, category: 'Salaire', type: 'income', account: 'Banque' },
     { id: '10', date: new Date(new Date().setDate(15)).toISOString(), description: 'Cadeau d\'anniversaire', amount: 60000, category: 'Don', type: 'income', account: 'Espèces' },
-    { id: '11', date: new Date(new Date().setDate(18)).toISOString(), description: 'Aide sociale du gouvernement', amount: 100000, category: 'Aide sociale', type: 'income', account: 'Banque' },
+    { id: '11', date: new Date(new Date().setDate(18)).toISOString(), description: 'Aide sociale du gouvernement', amount: 100000, category: 'Aide sociale', type: 'expense', account: 'Banque' },
   ] as Transaction[];
 }
 
