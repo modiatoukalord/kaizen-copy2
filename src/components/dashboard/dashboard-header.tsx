@@ -24,6 +24,7 @@ export default function DashboardHeader() {
     { href: '/', label: 'Tableau de bord' },
     { href: '/income', label: 'Revenus' },
     { href: '/expenses', label: 'Dépenses' },
+    { href: '/charts', label: 'Graphiques' },
   ];
 
   const transactionType = (() => {

@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -26,9 +24,10 @@ interface DashboardProps {
   title?: string;
   filterType?: 'income' | 'expense';
   hideCharts?: boolean;
+  showTransactions?: boolean;
 }
 
-export default function Dashboard({ initialTransactions, title="Tableau de bord", filterType, hideCharts = false }: DashboardProps) {
+export default function Dashboard({ initialTransactions, title="Tableau de bord", filterType, hideCharts = false, showTransactions = false }: DashboardProps) {
   const [period, setPeriod] = useState<Period>('monthly');
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
 
@@ -110,6 +109,11 @@ export default function Dashboard({ initialTransactions, title="Tableau de bord"
             { !hideCharts && (
                 <div className="col-span-4 lg:col-span-7">
                     <ExpensesChart transactions={filteredTransactions} />
+                </div>
+            )}
+             { showTransactions && (
+                <div className="col-span-4 lg:col-span-7">
+                    <TransactionsTable transactions={filteredTransactions} />
                 </div>
             )}
         </div>
