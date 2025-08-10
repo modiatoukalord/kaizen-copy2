@@ -30,11 +30,11 @@ export default function ExpensesChart({ transactions }: ExpensesChartProps) {
     return (
         <Card className="h-full">
             <CardHeader>
-                <CardTitle>Expense Distribution</CardTitle>
-                <CardDescription>A breakdown of your spending by category.</CardDescription>
+                <CardTitle>Répartition des dépenses</CardTitle>
+                <CardDescription>Une répartition de vos dépenses par catégorie.</CardDescription>
             </CardHeader>
             <CardContent className="flex h-[300px] items-center justify-center">
-                <p className="text-muted-foreground">No expense data for this period.</p>
+                <p className="text-muted-foreground">Aucune donnée de dépense pour cette période.</p>
             </CardContent>
         </Card>
     );
@@ -43,8 +43,8 @@ export default function ExpensesChart({ transactions }: ExpensesChartProps) {
   return (
     <Card className="h-full">
         <CardHeader>
-            <CardTitle>Expense Distribution</CardTitle>
-            <CardDescription>A breakdown of your spending by category.</CardDescription>
+            <CardTitle>Répartition des dépenses</CardTitle>
+            <CardDescription>Une répartition de vos dépenses par catégorie.</CardDescription>
         </CardHeader>
         <CardContent>
             <ChartContainer config={{}} className="h-[300px] w-full">

@@ -37,10 +37,10 @@ import { handleAddOrUpdateTransaction, suggestCategory } from '@/app/actions';
 const transactionFormSchema = z.object({
   id: z.string().optional(),
   description: z.string().min(2, {
-    message: 'Description must be at least 2 characters.',
+    message: 'La description doit comporter au moins 2 caractères.',
   }),
   amount: z.coerce.number().positive({
-    message: 'Please enter a positive amount.',
+    message: 'Veuillez entrer un montant positif.',
   }),
   type: z.enum(['income', 'expense']),
   category: z.enum(TransactionCategory),
@@ -124,7 +124,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
   React.useEffect(() => {
     if (state.success) {
       toast({
-        title: 'Success!',
+        title: 'Succès!',
         description: state.message,
       });
       setOpen(false);
@@ -132,7 +132,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
     } else if (state.message && Object.keys(state.errors || {}).length > 0) {
       toast({
         variant: 'destructive',
-        title: 'Uh oh! Something went wrong.',
+        title: 'Oh oh! Quelque chose s\'est mal passé.',
         description: state.message,
       });
     }
@@ -144,8 +144,8 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
     if (!description || !amount) {
         toast({
             variant: 'destructive',
-            title: 'Suggestion Failed',
-            description: "Please enter a description and amount to get a suggestion.",
+            title: 'Échec de la suggestion',
+            description: "Veuillez entrer une description et un montant pour obtenir une suggestion.",
         })
         return;
     }
@@ -158,15 +158,15 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
         } else if (result?.category) {
             toast({
                 variant: 'default',
-                title: 'Suggestion Adjusted',
-                description: `AI suggested "${result.category}" which is not a valid ${transactionType} category. Please select one from the list.`,
+                title: 'Suggestion ajustée',
+                description: `L'IA a suggéré "${result.category}" qui n'est pas une catégorie de ${transactionType} valide. Veuillez en sélectionner une dans la liste.`,
             })
         }
     } catch (error) {
         toast({
             variant: 'destructive',
-            title: 'Suggestion Failed',
-            description: 'Could not get an AI suggestion at this time.',
+            title: 'Échec de la suggestion',
+            description: 'Impossible d\'obtenir une suggestion de l\'IA pour le moment.',
         })
     } finally {
         setIsSuggesting(false);
@@ -179,9 +179,9 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>{isEditing ? 'Edit Transaction' : 'Add a New Transaction'}</SheetTitle>
+          <SheetTitle>{isEditing ? 'Modifier la transaction' : 'Ajouter une nouvelle transaction'}</SheetTitle>
           <SheetDescription>
-            {isEditing ? 'Update the details of your transaction.' : 'Fill in the details of your income or expense.'}
+            {isEditing ? 'Mettez à jour les détails de votre transaction.' : 'Remplissez les détails de vos revenus ou dépenses.'}
           </SheetDescription>
         </SheetHeader>
         <form
@@ -209,7 +209,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount</Label>
+            <Label htmlFor="amount">Montant</Label>
             <Input id="amount" name="amount" type="number" step="0.01" {...form.register('amount')} />
             {state.errors?.amount && <p className="text-sm text-destructive">{state.errors.amount[0]}</p>}
           </div>
@@ -220,11 +220,11 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
                 <Label>Type</Label>
                 <Select name="type" onValueChange={(value) => form.setValue('type', value as 'income' | 'expense')} defaultValue={form.getValues('type')}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder="Sélectionner le type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="expense">Expense</SelectItem>
-                    <SelectItem value="income">Income</SelectItem>
+                    <SelectItem value="expense">Dépense</SelectItem>
+                    <SelectItem value="income">Revenu</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -243,7 +243,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.watch('date') ? format(form.watch('date'), 'PPP') : <span>Pick a date</span>}
+                    {form.watch('date') ? format(form.watch('date'), 'PPP') : <span>Choisir une date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -260,19 +260,19 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
           
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-                <Label>Category</Label>
+                <Label>Catégorie</Label>
                 <Button variant="ghost" type="button" size="sm" onClick={handleSuggestion} disabled={isSuggesting}>
                     {isSuggesting ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                         <Wand2 className="mr-2 h-4 w-4" />
                     )}
-                    Suggest
+                    Suggérer
                 </Button>
             </div>
             <Select name="category" onValueChange={(value) => form.setValue('category', value as Category)} value={form.watch('category')}>
               <SelectTrigger>
-                <SelectValue placeholder="Select category" />
+                <SelectValue placeholder="Sélectionner une catégorie" />
               </SelectTrigger>
               <SelectContent>
                 {availableCategories.map((cat) => (
@@ -288,7 +288,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
             <Label>Compte</Label>
             <Select name="account" onValueChange={(value) => form.setValue('account', value as Account)} value={form.watch('account')}>
               <SelectTrigger>
-                <SelectValue placeholder="Select account" />
+                <SelectValue placeholder="Sélectionner un compte" />
               </SelectTrigger>
               <SelectContent>
                 {TransactionAccount.map((acc) => (
@@ -303,7 +303,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
           <SheetFooter>
             <Button type="submit" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isEditing ? 'Save Changes' : 'Save Transaction'}
+              {isEditing ? 'Enregistrer les modifications' : 'Enregistrer la transaction'}
             </Button>
           </SheetFooter>
         </form>

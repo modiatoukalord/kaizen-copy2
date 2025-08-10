@@ -27,7 +27,7 @@ export default function StatCards({ transactions, filterType }: StatCardsProps) 
     if (filterType === 'income') {
         return (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <StatCard title="Total Income" value={income} icon={ArrowUpRight} />
+                <StatCard title="Revenu total" value={income} icon={ArrowUpRight} />
                 <StatCard title="Total emprunt" value={totalEmprunt} icon={ArrowLeftRight} />
                 <StatCard title="Gain propre" value={gainPropre} icon={DollarSign} />
             </div>
@@ -36,9 +36,9 @@ export default function StatCards({ transactions, filterType }: StatCardsProps) 
     
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <StatCard title="Total Income" value={income} icon={ArrowUpRight} />
-            <StatCard title="Total Expenses" value={expenses} icon={ArrowDownLeft} />
-            <StatCard title="Net Balance" value={balance} icon={DollarSign} />
+            <StatCard title="Revenu total" value={income} icon={ArrowUpRight} />
+            <StatCard title="Dépenses totales" value={expenses} icon={ArrowDownLeft} />
+            <StatCard title="Solde net" value={balance} icon={DollarSign} />
         </div>
     );
 }

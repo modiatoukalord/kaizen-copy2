@@ -8,12 +8,12 @@ import { addTransaction as dbAddTransaction, getTransactions, updateTransaction 
 
 const formSchema = z.object({
   id: z.string().optional(),
-  description: z.string().min(1, 'Description is required'),
-  amount: z.coerce.number().min(0.01, 'Amount must be positive'),
+  description: z.string().min(1, 'La description est requise'),
+  amount: z.coerce.number().min(0.01, 'Le montant doit être positif'),
   type: z.enum(['income', 'expense']),
   category: z.enum(TransactionCategory),
   account: z.enum(TransactionAccount),
-  date: z.string().min(1, 'Date is required'),
+  date: z.string().min(1, 'La date est requise'),
 });
 
 export async function handleAddOrUpdateTransaction(prevState: any, formData: FormData) {
@@ -22,7 +22,7 @@ export async function handleAddOrUpdateTransaction(prevState: any, formData: For
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Error: Please check the form fields.',
+      message: 'Erreur: Veuillez vérifier les champs du formulaire.',
     };
   }
   
@@ -32,14 +32,14 @@ export async function handleAddOrUpdateTransaction(prevState: any, formData: For
     if (id) {
         await dbUpdateTransaction({ id, ...transactionData });
         revalidatePath('/');
-        return { message: 'Transaction updated successfully.', errors: {}, success: true };
+        return { message: 'Transaction mise à jour avec succès.', errors: {}, success: true };
     } else {
         await dbAddTransaction(transactionData);
         revalidatePath('/');
-        return { message: 'Transaction added successfully.', errors: {}, success: true };
+        return { message: 'Transaction ajoutée avec succès.', errors: {}, success: true };
     }
   } catch (error) {
-    return { message: 'Database error: Failed to save transaction.', errors: {}, success: false };
+    return { message: 'Erreur de base de données: Échec de l\'enregistrement de la transaction.', errors: {}, success: false };
   }
 }
 
@@ -59,7 +59,7 @@ export async function suggestCategory(description: string, amount: number) {
     const result = await categorizeTransactionFlow(input);
     return result;
   } catch (error) {
-    console.error('AI categorization failed:', error);
+    console.error('La catégorisation par IA a échoué:', error);
     return null;
   }
 }

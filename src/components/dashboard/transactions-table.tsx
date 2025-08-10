@@ -67,7 +67,7 @@ export default function TransactionsTable({ transactions, filterType }: Transact
     },
     {
         accessorKey: 'category',
-        header: 'Category',
+        header: 'Catégorie',
         cell: ({ row }) => <CategoryBadge category={row.original.category} />,
         filterFn: (row, id, value) => {
           return value.includes(row.getValue(id));
@@ -78,7 +78,7 @@ export default function TransactionsTable({ transactions, filterType }: Transact
       header: ({ column }) => (
         <div className="text-right">
             <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                Amount
+                Montant
                 <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
         </div>
@@ -102,7 +102,7 @@ export default function TransactionsTable({ transactions, filterType }: Transact
             return (
                 <AddTransactionSheet transaction={transaction}>
                     <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
+                        <span className="sr-only">Ouvrir le menu</span>
                         <Pencil className="h-4 w-4" />
                     </Button>
                 </AddTransactionSheet>
@@ -137,8 +137,8 @@ export default function TransactionsTable({ transactions, filterType }: Transact
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
-        <CardTitle>Recent Transactions</CardTitle>
-        <CardDescription>A list of your recent financial activities.</CardDescription>
+        <CardTitle>Transactions Récentes</CardTitle>
+        <CardDescription>Une liste de vos activités financières récentes.</CardDescription>
         <div className="mt-4 grid flex-1 grid-cols-1 items-center gap-4 md:grid-cols-3">
             <Popover>
               <PopoverTrigger asChild>
@@ -160,7 +160,7 @@ export default function TransactionsTable({ transactions, filterType }: Transact
                       format(dateFilterValue.start, 'LLL dd, y')
                     )
                   ) : (
-                    <span>Filter by date...</span>
+                    <span>Filtrer par date...</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -186,10 +186,10 @@ export default function TransactionsTable({ transactions, filterType }: Transact
               }}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Filter by account" />
+                <SelectValue placeholder="Filtrer par compte" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Accounts</SelectItem>
+                <SelectItem value="all">Tous les comptes</SelectItem>
                 {TransactionAccount.map((acc) => (
                   <SelectItem key={acc} value={acc}>
                     {acc}
@@ -208,10 +208,10 @@ export default function TransactionsTable({ transactions, filterType }: Transact
               }}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Filter by category" />
+                <SelectValue placeholder="Filtrer par catégorie" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="all">Toutes les catégories</SelectItem>
                 {categoryFilterOptions.map((cat) => (
                   <SelectItem key={cat} value={cat}>
                     {cat}
@@ -246,7 +246,7 @@ export default function TransactionsTable({ transactions, filterType }: Transact
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                  Aucun résultat.
                 </TableCell>
               </TableRow>
             )}

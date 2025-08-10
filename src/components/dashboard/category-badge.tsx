@@ -16,13 +16,13 @@ import { cn } from '@/lib/utils';
 import { IncomeCategory } from '@/lib/types';
 
 export const categoryIcons: Record<Category, LucideIcon> = {
-  Food: UtensilsCrossed,
-  Transportation: Car,
-  Entertainment: Ticket,
-  Utilities: Lightbulb,
-  Rent: Home,
+  Nourriture: UtensilsCrossed,
+  Transport: Car,
+  Divertissement: Ticket,
+  'Services publics': Lightbulb,
+  Loyer: Home,
   Salaire: Landmark,
-  Other: MoreHorizontal,
+  Autre: MoreHorizontal,
   Don: Gift,
   Emprunt: ArrowLeftRight,
 };

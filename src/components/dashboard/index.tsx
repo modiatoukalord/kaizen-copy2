@@ -27,7 +27,7 @@ interface DashboardProps {
   hideCharts?: boolean;
 }
 
-export default function Dashboard({ initialTransactions, title="Dashboard", filterType, hideCharts = false }: DashboardProps) {
+export default function Dashboard({ initialTransactions, title="Tableau de bord", filterType, hideCharts = false }: DashboardProps) {
   const [period, setPeriod] = useState<Period>('monthly');
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
 
@@ -69,10 +69,10 @@ export default function Dashboard({ initialTransactions, title="Dashboard", filt
           <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{title}</h1>
           <Tabs value={period} onValueChange={(value) => setPeriod(value as Period)} className="space-y-4">
             <TabsList>
-              <TabsTrigger value="weekly">Weekly</TabsTrigger>
-              <TabsTrigger value="monthly">Monthly</TabsTrigger>
-              <TabsTrigger value="quarterly">Quarterly</TabsTrigger>
-              <TabsTrigger value="annually">Annually</TabsTrigger>
+              <TabsTrigger value="weekly">Hebdomadaire</TabsTrigger>
+              <TabsTrigger value="monthly">Mensuel</TabsTrigger>
+              <TabsTrigger value="quarterly">Trimestriel</TabsTrigger>
+              <TabsTrigger value="annually">Annuel</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>

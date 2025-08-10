@@ -21,7 +21,7 @@ export default function DashboardHeader() {
 
 
   const navItems = [
-    { href: '/', label: 'Dashboard' },
+    { href: '/', label: 'Tableau de bord' },
     { href: '/income', label: 'Revenus' },
     { href: '/expenses', label: 'Dépenses' },
   ];
@@ -55,7 +55,7 @@ export default function DashboardHeader() {
       <div className="flex w-full items-center justify-end gap-4 md:ml-auto md:gap-2 lg:gap-4">
         <Select value={currency} onValueChange={setCurrency}>
             <SelectTrigger className="w-[100px]">
-                <SelectValue placeholder="Currency" />
+                <SelectValue placeholder="Devise" />
             </SelectTrigger>
             <SelectContent>
                 <SelectItem value="USD">USD</SelectItem>
@@ -66,7 +66,7 @@ export default function DashboardHeader() {
         <AddTransactionSheet type={transactionType}>
           <Button>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Add Transaction
+            Ajouter une transaction
           </Button>
         </AddTransactionSheet>
       </div>
