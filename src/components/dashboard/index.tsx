@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -63,6 +64,32 @@ export default function Dashboard({ initialTransactions, title="Tableau de bord"
     return periodTransactions;
   }, [period, transactions, filterType]);
 
+  if (filterType) {
+    return (
+        <>
+            <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{title}</h1>
+            <Tabs value={period} onValueChange={(value) => setPeriod(value as Period)} className="space-y-4">
+                <TabsList>
+                <TabsTrigger value="weekly">Hebdomadaire</TabsTrigger>
+                <TabsTrigger value="monthly">Mensuel</TabsTrigger>
+                <TabsTrigger value="quarterly">Trimestriel</TabsTrigger>
+                <TabsTrigger value="annually">Annuel</TabsTrigger>
+                </TabsList>
+            </Tabs>
+            </div>
+            
+            <StatCards transactions={filteredTransactions} filterType={filterType} />
+            
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <div className="col-span-4 lg:col-span-7">
+                    <TransactionsTable transactions={filteredTransactions} filterType={filterType}/>
+                </div>
+            </div>
+        </>
+    )
+  }
+
   return (
     <>
         <div className="flex items-center justify-between">
@@ -81,13 +108,10 @@ export default function Dashboard({ initialTransactions, title="Tableau de bord"
         
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             { !hideCharts && (
-                <div className="col-span-4">
+                <div className="col-span-4 lg:col-span-7">
                     <ExpensesChart transactions={filteredTransactions} />
                 </div>
             )}
-            <div className={cn("col-span-4 lg:col-span-7", !hideCharts && "lg:col-span-3")}>
-                <TransactionsTable transactions={filteredTransactions} filterType={filterType}/>
-            </div>
         </div>
     </>
   );
