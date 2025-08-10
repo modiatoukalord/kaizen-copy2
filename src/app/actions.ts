@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { categorizeTransaction as categorizeTransactionFlow } from '@/ai/flows/categorize-transaction';
-import { TransactionCategory, type CategorizeTransactionInput } from '@/lib/types';
+import { TransactionCategory, TransactionAccount, type CategorizeTransactionInput } from '@/lib/types';
 import { addTransaction as dbAddTransaction, getTransactions } from '@/lib/data';
 
 const formSchema = z.object({
@@ -11,6 +11,7 @@ const formSchema = z.object({
   amount: z.coerce.number().min(0.01, 'Amount must be positive'),
   type: z.enum(['income', 'expense']),
   category: z.enum(TransactionCategory),
+  account: z.enum(TransactionAccount),
   date: z.string().min(1, 'Date is required'),
 });
 

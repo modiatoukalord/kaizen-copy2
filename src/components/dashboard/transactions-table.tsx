@@ -22,16 +22,12 @@ import { formatCurrency, cn } from '@/lib/utils';
 import { CategoryBadge } from './category-badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TransactionCategory, Category } from '@/lib/types';
+import { TransactionAccount, type Account } from '@/lib/types';
 
 interface TransactionsTableProps {
   transactions: Transaction[];
   filterType?: 'income' | 'expense';
 }
-
-const incomeCategories: Category[] = ['Salary'];
-const expenseCategories: Category[] = TransactionCategory.filter(c => c !== 'Salary');
-
 
 export default function TransactionsTable({ transactions, filterType }: TransactionsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -53,12 +49,17 @@ export default function TransactionsTable({ transactions, filterType }: Transact
       header: 'Description',
     },
     {
-      accessorKey: 'category',
+      accessorKey: 'account',
       header: 'Compte',
-      cell: ({ row }) => <CategoryBadge category={row.original.category} />,
+      cell: ({ row }) => <span>{row.original.account}</span>,
       filterFn: (row, id, value) => {
         return value.includes(row.getValue(id));
       },
+    },
+    {
+        accessorKey: 'category',
+        header: 'Category',
+        cell: ({ row }) => <CategoryBadge category={row.original.category} />,
     },
     {
       accessorKey: 'amount',
@@ -99,12 +100,6 @@ export default function TransactionsTable({ transactions, filterType }: Transact
     },
   });
 
-  const availableCategories = React.useMemo(() => {
-    if (filterType === 'income') return incomeCategories;
-    if (filterType === 'expense') return expenseCategories;
-    return TransactionCategory;
-  }, [filterType]);
-
   return (
     <Card className="h-full">
       <CardHeader>
@@ -120,12 +115,12 @@ export default function TransactionsTable({ transactions, filterType }: Transact
                 className="max-w-sm"
             />
             <Select
-              value={(table.getColumn('category')?.getFilterValue() as string) ?? 'all'}
+              value={(table.getColumn('account')?.getFilterValue() as string) ?? 'all'}
               onValueChange={(value) => {
                   if (value === 'all') {
-                      table.getColumn('category')?.setFilterValue(undefined);
+                      table.getColumn('account')?.setFilterValue(undefined);
                   } else {
-                      table.getColumn('category')?.setFilterValue(value);
+                      table.getColumn('account')?.setFilterValue(value);
                   }
               }}
             >
@@ -134,9 +129,9 @@ export default function TransactionsTable({ transactions, filterType }: Transact
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Accounts</SelectItem>
-                {availableCategories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
+                {TransactionAccount.map((acc) => (
+                  <SelectItem key={acc} value={acc}>
+                    {acc}
                   </SelectItem>
                 ))}
               </SelectContent>

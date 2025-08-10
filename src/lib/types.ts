@@ -11,6 +11,13 @@ export const TransactionCategory = [
   'Other',
 ] as const;
 
+export const TransactionAccount = [
+    'Banque', 
+    'Mobile money', 
+    'Espèces'
+] as const;
+
+export type Account = (typeof TransactionAccount)[number];
 export type Category = (typeof TransactionCategory)[number];
 
 export type Transaction = {
@@ -19,6 +26,7 @@ export type Transaction = {
   description: string;
   amount: number;
   category: Category;
+  account: Account;
   type: 'income' | 'expense';
 };
 

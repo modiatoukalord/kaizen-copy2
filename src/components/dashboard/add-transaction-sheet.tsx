@@ -31,7 +31,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { toast } from '@/hooks/use-toast';
-import { TransactionCategory, type Category } from '@/lib/types';
+import { TransactionCategory, TransactionAccount, type Category, type Account } from '@/lib/types';
 import { handleAddTransaction, suggestCategory } from '@/app/actions';
 
 const transactionFormSchema = z.object({
@@ -43,6 +43,7 @@ const transactionFormSchema = z.object({
   }),
   type: z.enum(['income', 'expense']),
   category: z.enum(TransactionCategory),
+  account: z.enum(TransactionAccount),
   date: z.date(),
 });
 
@@ -66,6 +67,7 @@ export function AddTransactionSheet({ children }: { children: React.ReactNode })
       amount: 0,
       type: 'expense',
       category: 'Other',
+      account: 'Banque',
       date: new Date(),
     },
   });
@@ -215,6 +217,22 @@ export function AddTransactionSheet({ children }: { children: React.ReactNode })
                 {TransactionCategory.map((cat) => (
                   <SelectItem key={cat} value={cat}>
                     {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Compte</Label>
+            <Select name="account" onValueChange={(value) => form.setValue('account', value as Account)} value={form.watch('account')}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select account" />
+              </SelectTrigger>
+              <SelectContent>
+                {TransactionAccount.map((acc) => (
+                  <SelectItem key={acc} value={acc}>
+                    {acc}
                   </SelectItem>
                 ))}
               </SelectContent>
