@@ -22,13 +22,18 @@ import { formatCurrency, cn } from '@/lib/utils';
 import { CategoryBadge } from './category-badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TransactionCategory } from '@/lib/types';
+import { TransactionCategory, Category } from '@/lib/types';
 
 interface TransactionsTableProps {
   transactions: Transaction[];
+  filterType?: 'income' | 'expense';
 }
 
-export default function TransactionsTable({ transactions }: TransactionsTableProps) {
+const incomeCategories: Category[] = ['Salary'];
+const expenseCategories: Category[] = TransactionCategory.filter(c => c !== 'Salary');
+
+
+export default function TransactionsTable({ transactions, filterType }: TransactionsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
@@ -94,6 +99,12 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
     },
   });
 
+  const availableCategories = React.useMemo(() => {
+    if (filterType === 'income') return incomeCategories;
+    if (filterType === 'expense') return expenseCategories;
+    return TransactionCategory;
+  }, [filterType]);
+
   return (
     <Card className="h-full">
       <CardHeader>
@@ -123,7 +134,7 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Accounts</SelectItem>
-                {TransactionCategory.map((cat) => (
+                {availableCategories.map((cat) => (
                   <SelectItem key={cat} value={cat}>
                     {cat}
                   </SelectItem>

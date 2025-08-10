@@ -86,7 +86,7 @@ export default function Dashboard({ initialTransactions, title="Dashboard", filt
                 </div>
             )}
             <div className={cn("col-span-4", !hideCharts && "lg:col-span-3")}>
-                <TransactionsTable transactions={filteredTransactions} />
+                <TransactionsTable transactions={filteredTransactions} filterType={filterType}/>
             </div>
         </div>
     </>
