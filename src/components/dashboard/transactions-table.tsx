@@ -13,6 +13,10 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
 } from '@tanstack/react-table';
+import { format } from 'date-fns';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowUpDown } from 'lucide-react';
@@ -20,9 +24,8 @@ import { Button } from '@/components/ui/button';
 import type { Transaction } from '@/lib/types';
 import { formatCurrency, cn } from '@/lib/utils';
 import { CategoryBadge } from './category-badge';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TransactionAccount, type Account } from '@/lib/types';
+import { TransactionAccount, TransactionCategory, type Account } from '@/lib/types';
 
 interface TransactionsTableProps {
   transactions: Transaction[];
@@ -60,6 +63,9 @@ export default function TransactionsTable({ transactions, filterType }: Transact
         accessorKey: 'category',
         header: 'Category',
         cell: ({ row }) => <CategoryBadge category={row.original.category} />,
+        filterFn: (row, id, value) => {
+          return value.includes(row.getValue(id));
+        },
     },
     {
       accessorKey: 'amount',
@@ -100,20 +106,43 @@ export default function TransactionsTable({ transactions, filterType }: Transact
     },
   });
 
+  const dateFilterValue = table.getColumn('date')?.getFilterValue() as string | undefined;
+  const selectedDate = dateFilterValue ? new Date(dateFilterValue) : undefined;
+
   return (
     <Card className="h-full">
       <CardHeader>
         <CardTitle>Recent Transactions</CardTitle>
         <CardDescription>A list of your recent financial activities.</CardDescription>
         <div className="mt-4 flex items-center gap-4">
-            <Input
-                placeholder="Filter by date..."
-                value={(table.getColumn('date')?.getFilterValue() as string) ?? ''}
-                onChange={(event) =>
-                    table.getColumn('date')?.setFilterValue(event.target.value)
-                }
-                className="max-w-sm"
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={'outline'}
+                  className={cn(
+                    'max-w-sm justify-start text-left font-normal',
+                    !selectedDate && 'text-muted-foreground'
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, 'PPP') : <span>Filter by date...</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    const newDate = date ? date.toLocaleDateString() : undefined;
+                    const currentDate = table.getColumn('date')?.getFilterValue();
+                    if (newDate !== currentDate) {
+                      table.getColumn('date')?.setFilterValue(newDate);
+                    }
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
             <Select
               value={(table.getColumn('account')?.getFilterValue() as string) ?? 'all'}
               onValueChange={(value) => {
