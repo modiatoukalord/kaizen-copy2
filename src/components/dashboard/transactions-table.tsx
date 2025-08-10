@@ -120,13 +120,13 @@ export default function TransactionsTable({ transactions, filterType }: Transact
       <CardHeader>
         <CardTitle>Recent Transactions</CardTitle>
         <CardDescription>A list of your recent financial activities.</CardDescription>
-        <div className="mt-4 flex flex-wrap items-center gap-4">
+        <div className="mt-4 grid grid-cols-1 items-center gap-4 md:grid-cols-3">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant={'outline'}
                   className={cn(
-                    'max-w-sm justify-start text-left font-normal',
+                    'w-full justify-start text-left font-normal',
                     !selectedDate && 'text-muted-foreground'
                   )}
                 >
@@ -159,7 +159,7 @@ export default function TransactionsTable({ transactions, filterType }: Transact
                   }
               }}
             >
-              <SelectTrigger className="max-w-sm">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Filter by account" />
               </SelectTrigger>
               <SelectContent>
@@ -181,7 +181,7 @@ export default function TransactionsTable({ transactions, filterType }: Transact
                   }
               }}
             >
-              <SelectTrigger className="max-w-sm">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
