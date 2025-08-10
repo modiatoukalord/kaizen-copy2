@@ -9,6 +9,9 @@ import {
   useReactTable,
   SortingState,
   getSortedRowModel,
+  ColumnFiltersState,
+  getFilteredRowModel,
+  getPaginationRowModel,
 } from '@tanstack/react-table';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -17,6 +20,9 @@ import { Button } from '@/components/ui/button';
 import type { Transaction } from '@/lib/types';
 import { formatCurrency, cn } from '@/lib/utils';
 import { CategoryBadge } from './category-badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TransactionCategory } from '@/lib/types';
 
 interface TransactionsTableProps {
   transactions: Transaction[];
@@ -24,6 +30,7 @@ interface TransactionsTableProps {
 
 export default function TransactionsTable({ transactions }: TransactionsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   const columns: ColumnDef<Transaction>[] = [
     {
@@ -44,6 +51,9 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
       accessorKey: 'category',
       header: 'Compte',
       cell: ({ row }) => <CategoryBadge category={row.original.category} />,
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
     },
     {
       accessorKey: 'amount',
@@ -75,8 +85,12 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     state: {
       sorting,
+      columnFilters,
     },
   });
 
@@ -85,6 +99,38 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
       <CardHeader>
         <CardTitle>Recent Transactions</CardTitle>
         <CardDescription>A list of your recent financial activities.</CardDescription>
+        <div className="mt-4 flex items-center gap-4">
+            <Input
+                placeholder="Filter by date..."
+                value={(table.getColumn('date')?.getFilterValue() as string) ?? ''}
+                onChange={(event) =>
+                    table.getColumn('date')?.setFilterValue(event.target.value)
+                }
+                className="max-w-sm"
+            />
+            <Select
+              value={(table.getColumn('category')?.getFilterValue() as string) ?? 'all'}
+              onValueChange={(value) => {
+                  if (value === 'all') {
+                      table.getColumn('category')?.setFilterValue(undefined);
+                  } else {
+                      table.getColumn('category')?.setFilterValue(value);
+                  }
+              }}
+            >
+              <SelectTrigger className="max-w-sm">
+                <SelectValue placeholder="Filter by account" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Accounts</SelectItem>
+                {TransactionCategory.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+        </div>
       </CardHeader>
       <CardContent className="h-[340px] overflow-y-auto">
         <Table>
@@ -111,7 +157,7 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No transactions for this period.
+                  No results.
                 </TableCell>
               </TableRow>
             )}
