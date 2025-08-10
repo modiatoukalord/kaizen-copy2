@@ -19,15 +19,17 @@ export default function StatCards({ transactions, filterType }: StatCardsProps) 
     const balance = income - expenses;
 
     const totalEmprunt = transactions
-        .filter(t => t.category === 'Emprunt')
+        .filter(t => t.category === 'Emprunt' && t.type === 'income')
         .reduce((sum, t) => sum + t.amount, 0);
+        
+    const gainPropre = income - totalEmprunt;
 
     if (filterType === 'income') {
         return (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <StatCard title="Total Income" value={income} icon={ArrowUpRight} />
                 <StatCard title="Total emprunt" value={totalEmprunt} icon={ArrowLeftRight} />
-                <StatCard title="Net Balance" value={balance} icon={DollarSign} />
+                <StatCard title="Gain propre" value={gainPropre} icon={DollarSign} />
             </div>
         );
     }
