@@ -10,7 +10,7 @@ type CurrencyContextType = {
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
-  const [currency, setCurrency] = useState('USD');
+  const [currency, setCurrency] = useState('XOF');
 
   const value = useMemo(() => ({ currency, setCurrency }), [currency]);
 
