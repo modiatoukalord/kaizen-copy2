@@ -26,3 +26,12 @@ export const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
   global.transactions.unshift(newTransaction);
   return Promise.resolve(newTransaction);
 };
+
+export const updateTransaction = async (transaction: Transaction) => {
+    const index = global.transactions.findIndex(t => t.id === transaction.id);
+    if (index !== -1) {
+        global.transactions[index] = transaction;
+        return Promise.resolve(transaction);
+    }
+    throw new Error('Transaction not found');
+};

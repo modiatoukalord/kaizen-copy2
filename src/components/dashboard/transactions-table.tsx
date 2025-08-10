@@ -14,7 +14,7 @@ import {
   getPaginationRowModel,
 } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, MoreHorizontal, Pencil } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -26,6 +26,9 @@ import { formatCurrency, cn } from '@/lib/utils';
 import { CategoryBadge } from './category-badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TransactionAccount, TransactionCategory, IncomeCategory, ExpenseCategory } from '@/lib/types';
+import { AddTransactionSheet } from './add-transaction-sheet';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
 
 interface TransactionsTableProps {
   transactions: Transaction[];
@@ -89,6 +92,20 @@ export default function TransactionsTable({ transactions, filterType }: Transact
         </div>
       ),
     },
+    {
+        id: 'actions',
+        cell: ({ row }) => {
+            const transaction = row.original;
+            return (
+                <AddTransactionSheet transaction={transaction}>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <Pencil className="h-4 w-4" />
+                    </Button>
+                </AddTransactionSheet>
+            )
+        }
+    }
   ];
 
   const table = useReactTable({
@@ -107,7 +124,6 @@ export default function TransactionsTable({ transactions, filterType }: Transact
   });
 
   const dateFilterValue = table.getColumn('date')?.getFilterValue() as string | undefined;
-  const selectedDate = dateFilterValue ? new Date(dateFilterValue) : undefined;
   
   const categoryFilterOptions = React.useMemo(() => {
     if (filterType === 'income') return IncomeCategory;
@@ -127,22 +143,23 @@ export default function TransactionsTable({ transactions, filterType }: Transact
                   variant={'outline'}
                   className={cn(
                     'w-full justify-start text-left font-normal',
-                    !selectedDate && 'text-muted-foreground'
+                    !dateFilterValue && 'text-muted-foreground'
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, 'PPP') : <span>Filter by date...</span>}
+                  {dateFilterValue ? format(new Date(dateFilterValue), 'PPP') : <span>Filter by date...</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
                 <Calendar
                   mode="single"
-                  selected={selectedDate}
+                  selected={dateFilterValue ? new Date(dateFilterValue) : undefined}
                   onSelect={(date) => {
-                    const newDate = date ? date.toLocaleDateString() : undefined;
-                    const currentDate = table.getColumn('date')?.getFilterValue();
-                    if (newDate !== currentDate) {
-                      table.getColumn('date')?.setFilterValue(newDate);
+                    const currentFilter = table.getColumn('date')?.getFilterValue();
+                    const newFilter = date ? new Date(date.setHours(0,0,0,0)).toISOString() : undefined;
+                    
+                    if (newFilter !== currentFilter) {
+                         table.getColumn('date')?.setFilterValue(newFilter);
                     }
                   }}
                   initialFocus

@@ -31,10 +31,11 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { toast } from '@/hooks/use-toast';
-import { TransactionCategory, TransactionAccount, type Category, type Account, IncomeCategory, ExpenseCategory } from '@/lib/types';
-import { handleAddTransaction, suggestCategory } from '@/app/actions';
+import { TransactionCategory, TransactionAccount, type Category, type Account, IncomeCategory, ExpenseCategory, type Transaction } from '@/lib/types';
+import { handleAddOrUpdateTransaction, suggestCategory } from '@/app/actions';
 
 const transactionFormSchema = z.object({
+  id: z.string().optional(),
   description: z.string().min(2, {
     message: 'Description must be at least 2 characters.',
   }),
@@ -55,22 +56,49 @@ const initialState = {
   success: false,
 };
 
-export function AddTransactionSheet({ children, type: initialType }: { children: React.ReactNode, type?: 'income' | 'expense' }) {
+export function AddTransactionSheet({ children, type: initialType, transaction }: { children: React.ReactNode, type?: 'income' | 'expense', transaction?: Transaction }) {
   const [open, setOpen] = React.useState(false);
   const [isSuggesting, setIsSuggesting] = React.useState(false);
   const formRef = React.useRef<HTMLFormElement>(null);
+  
+  const isEditing = !!transaction;
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
     defaultValues: {
-      description: '',
-      amount: 0,
-      type: initialType || 'expense',
-      category: 'Other',
-      account: 'Banque',
-      date: new Date(),
+        id: transaction?.id || undefined,
+        description: transaction?.description || '',
+        amount: transaction?.amount || 0,
+        type: transaction?.type || initialType || 'expense',
+        category: transaction?.category || 'Other',
+        account: transaction?.account || 'Banque',
+        date: transaction?.date ? new Date(transaction.date) : new Date(),
     },
   });
+  
+  React.useEffect(() => {
+    if (transaction) {
+      form.reset({
+        id: transaction.id,
+        description: transaction.description,
+        amount: transaction.amount,
+        type: transaction.type,
+        category: transaction.category,
+        account: transaction.account,
+        date: new Date(transaction.date),
+      });
+    } else {
+        form.reset({
+            description: '',
+            amount: 0,
+            type: initialType || 'expense',
+            category: 'Other',
+            account: 'Banque',
+            date: new Date(),
+        });
+    }
+  }, [transaction, form, initialType, open]);
+
 
   const transactionType = form.watch('type');
 
@@ -79,10 +107,10 @@ export function AddTransactionSheet({ children, type: initialType }: { children:
   }, [transactionType]);
 
   React.useEffect(() => {
-    if (initialType) {
+    if (initialType && !isEditing) {
         form.setValue('type', initialType);
     }
-  }, [initialType, form]);
+  }, [initialType, form, isEditing]);
 
   React.useEffect(() => {
     // Reset category if it's not in the available categories for the selected type
@@ -91,7 +119,7 @@ export function AddTransactionSheet({ children, type: initialType }: { children:
     }
   }, [transactionType, availableCategories, form]);
 
-  const [state, formAction] = useFormState(handleAddTransaction, initialState);
+  const [state, formAction] = useFormState(handleAddOrUpdateTransaction, initialState);
 
   React.useEffect(() => {
     if (state.success) {
@@ -101,7 +129,7 @@ export function AddTransactionSheet({ children, type: initialType }: { children:
       });
       setOpen(false);
       form.reset();
-    } else if (state.message && Object.keys(state.errors).length > 0) {
+    } else if (state.message && Object.keys(state.errors || {}).length > 0) {
       toast({
         variant: 'destructive',
         title: 'Uh oh! Something went wrong.',
@@ -151,9 +179,9 @@ export function AddTransactionSheet({ children, type: initialType }: { children:
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>Add a New Transaction</SheetTitle>
+          <SheetTitle>{isEditing ? 'Edit Transaction' : 'Add a New Transaction'}</SheetTitle>
           <SheetDescription>
-            Fill in the details of your income or expense.
+            {isEditing ? 'Update the details of your transaction.' : 'Fill in the details of your income or expense.'}
           </SheetDescription>
         </SheetHeader>
         <form
@@ -165,11 +193,15 @@ export function AddTransactionSheet({ children, type: initialType }: { children:
             form.handleSubmit(() => {
                 const formData = new FormData(formRef.current!);
                 const values = form.getValues();
+                if (values.id) {
+                    formData.set('id', values.id);
+                }
                 formData.set('date', values.date.toISOString());
                 formAction(formData);
             })(evt);
           }}
         >
+          {isEditing && <input type="hidden" name="id" value={transaction.id} />}
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <Input id="description" name="description" {...form.register('description')} />
@@ -183,7 +215,7 @@ export function AddTransactionSheet({ children, type: initialType }: { children:
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {!initialType && (
+            {!initialType && !isEditing && (
               <div className="space-y-2">
                 <Label>Type</Label>
                 <Select name="type" onValueChange={(value) => form.setValue('type', value as 'income' | 'expense')} defaultValue={form.getValues('type')}>
@@ -197,7 +229,9 @@ export function AddTransactionSheet({ children, type: initialType }: { children:
                 </Select>
               </div>
             )}
-            <div className={cn("space-y-2", !initialType ? "" : "col-span-2")}>
+             {isEditing && <input type="hidden" name="type" value={form.getValues('type')} />}
+             {!isEditing && initialType && <input type="hidden" name="type" value={initialType} />}
+            <div className={cn("space-y-2", (!initialType && !isEditing) ? "" : "col-span-2")}>
               <Label>Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -269,7 +303,7 @@ export function AddTransactionSheet({ children, type: initialType }: { children:
           <SheetFooter>
             <Button type="submit" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Transaction
+              {isEditing ? 'Save Changes' : 'Save Transaction'}
             </Button>
           </SheetFooter>
         </form>

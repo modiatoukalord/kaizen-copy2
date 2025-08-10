@@ -4,9 +4,10 @@ import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { categorizeTransaction as categorizeTransactionFlow } from '@/ai/flows/categorize-transaction';
 import { TransactionCategory, TransactionAccount, type CategorizeTransactionInput } from '@/lib/types';
-import { addTransaction as dbAddTransaction, getTransactions } from '@/lib/data';
+import { addTransaction as dbAddTransaction, getTransactions, updateTransaction as dbUpdateTransaction } from '@/lib/data';
 
 const formSchema = z.object({
+  id: z.string().optional(),
   description: z.string().min(1, 'Description is required'),
   amount: z.coerce.number().min(0.01, 'Amount must be positive'),
   type: z.enum(['income', 'expense']),
@@ -15,7 +16,7 @@ const formSchema = z.object({
   date: z.string().min(1, 'Date is required'),
 });
 
-export async function handleAddTransaction(prevState: any, formData: FormData) {
+export async function handleAddOrUpdateTransaction(prevState: any, formData: FormData) {
   const validatedFields = formSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validatedFields.success) {
@@ -24,13 +25,21 @@ export async function handleAddTransaction(prevState: any, formData: FormData) {
       message: 'Error: Please check the form fields.',
     };
   }
+  
+  const { id, ...transactionData } = validatedFields.data;
 
   try {
-    await dbAddTransaction(validatedFields.data);
-    revalidatePath('/');
-    return { message: 'Transaction added successfully.', errors: {}, success: true };
+    if (id) {
+        await dbUpdateTransaction({ id, ...transactionData });
+        revalidatePath('/');
+        return { message: 'Transaction updated successfully.', errors: {}, success: true };
+    } else {
+        await dbAddTransaction(transactionData);
+        revalidatePath('/');
+        return { message: 'Transaction added successfully.', errors: {}, success: true };
+    }
   } catch (error) {
-    return { message: 'Database error: Failed to add transaction.', errors: {}, success: false };
+    return { message: 'Database error: Failed to save transaction.', errors: {}, success: false };
   }
 }
 
