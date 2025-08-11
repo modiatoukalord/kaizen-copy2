@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -119,7 +119,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
     }
   }, [transactionType, availableCategories, form]);
 
-  const [state, formAction] = useFormState(handleAddOrUpdateTransaction, initialState);
+  const [state, formAction] = useActionState(handleAddOrUpdateTransaction, initialState);
 
   React.useEffect(() => {
     if (state.success) {
