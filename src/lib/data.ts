@@ -1,4 +1,4 @@
-import type { Transaction } from './types';
+import type { Transaction, Transfer } from './types';
 
 // Using a global variable to simulate a database in this example.
 // In a real application, you would use a proper database.
@@ -18,6 +18,13 @@ if (!global.transactions) {
   ] as Transaction[];
 }
 
+if (!global.transfers) {
+    global.transfers = [
+        { id: 't1', date: new Date(new Date().setDate(2)).toISOString(), description: 'Transfert pour les courses', amount: 50000, fromAccount: 'Banque', toAccount: 'Espèces' },
+        { id: 't2', date: new Date(new Date().setDate(16)).toISOString(), description: 'Paiement mobile', amount: 25000, fromAccount: 'Banque', toAccount: 'Mobile money' },
+    ] as Transfer[];
+}
+
 export const getTransactions = async (): Promise<Transaction[]> => {
   return Promise.resolve(global.transactions);
 };
@@ -35,4 +42,23 @@ export const updateTransaction = async (transaction: Transaction) => {
         return Promise.resolve(transaction);
     }
     throw new Error('Transaction not found');
+};
+
+export const getTransfers = async (): Promise<Transfer[]> => {
+    return Promise.resolve(global.transfers);
+};
+
+export const addTransfer = async (transfer: Omit<Transfer, 'id'>) => {
+    const newTransfer: Transfer = { id: crypto.randomUUID(), ...transfer };
+    global.transfers.unshift(newTransfer);
+    return Promise.resolve(newTransfer);
+};
+
+export const updateTransfer = async (transfer: Transfer) => {
+    const index = global.transfers.findIndex(t => t.id === transfer.id);
+    if (index !== -1) {
+        global.transfers[index] = transfer;
+        return Promise.resolve(transfer);
+    }
+    throw new Error('Transfer not found');
 };

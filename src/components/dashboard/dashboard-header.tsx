@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { PiggyBank, PlusCircle } from 'lucide-react';
+import { PiggyBank, PlusCircle, ArrowRightLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AddTransactionSheet } from './add-transaction-sheet';
+import { AddTransferSheet } from './add-transfer-sheet';
 import { cn } from '@/lib/utils';
 import {
   Select,
@@ -24,6 +25,7 @@ export default function DashboardHeader() {
     { href: '/', label: 'Tableau de bord' },
     { href: '/income', label: 'Revenus' },
     { href: '/expenses', label: 'Dépenses' },
+    { href: '/transfers', label: 'Virements' },
     { href: '/charts', label: 'Graphiques' },
   ];
 
@@ -32,6 +34,8 @@ export default function DashboardHeader() {
     if (pathname === '/expenses') return 'expense';
     return undefined;
   })();
+  
+  const isTransfersPage = pathname === '/transfers';
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-6">
@@ -64,12 +68,21 @@ export default function DashboardHeader() {
                 <SelectItem value="XOF">FCFA</SelectItem>
             </SelectContent>
         </Select>
-        <AddTransactionSheet type={transactionType}>
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Ajouter une transaction
-          </Button>
-        </AddTransactionSheet>
+        {isTransfersPage ? (
+            <AddTransferSheet>
+                <Button>
+                    <ArrowRightLeft className="mr-2 h-4 w-4" />
+                    Nouveau virement
+                </Button>
+            </AddTransferSheet>
+        ) : (
+            <AddTransactionSheet type={transactionType}>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Ajouter une transaction
+                </Button>
+            </AddTransactionSheet>
+        )}
       </div>
     </header>
   );

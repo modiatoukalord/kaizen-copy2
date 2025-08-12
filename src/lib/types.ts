@@ -47,6 +47,15 @@ export type Transaction = {
   type: 'income' | 'expense';
 };
 
+export type Transfer = {
+  id: string;
+  date: string; // ISO 8601 format
+  description: string;
+  amount: number;
+  fromAccount: Account;
+  toAccount: Account;
+};
+
 export type Period = 'weekly' | 'monthly' | 'quarterly' | 'annually';
 
 export type CategorizeResult = Awaited<ReturnType<typeof categorizeTransaction>>;
