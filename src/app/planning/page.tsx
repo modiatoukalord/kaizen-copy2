@@ -9,12 +9,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PlusCircle, Trash2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ExpenseCategory, TransactionCategory } from '@/lib/types';
+import type { Category } from '@/lib/types';
 
 // Mock data for budget plan
 const initialBudgetItems = [
-    { category: 'Nourriture', planned: 200000, spent: 150000 },
-    { category: 'Transport', planned: 50000, spent: 35000 },
-    { category: 'Divertissement', planned: 75000, spent: 95000 },
+    { category: 'Nourriture' as Category, planned: 200000, spent: 150000 },
+    { category: 'Transport' as Category, planned: 50000, spent: 35000 },
+    { category: 'Divertissement' as Category, planned: 75000, spent: 95000 },
 ];
 
 
@@ -23,11 +26,17 @@ export default function PlanningPage() {
   const [budgetItems, setBudgetItems] = React.useState(initialBudgetItems);
 
   const handleAddItem = () => {
-    setBudgetItems([...budgetItems, { category: 'Nouvelle catégorie', planned: 0, spent: 0 }]);
+    setBudgetItems([...budgetItems, { category: 'Autre', planned: 0, spent: 0 }]);
   }
 
   const handleRemoveItem = (index: number) => {
     setBudgetItems(budgetItems.filter((_, i) => i !== index));
+  }
+  
+  const handleCategoryChange = (index: number, newCategory: Category) => {
+    const newItems = [...budgetItems];
+    newItems[index].category = newCategory;
+    setBudgetItems(newItems);
   }
 
   return (
@@ -57,7 +66,23 @@ export default function PlanningPage() {
                     <TableBody>
                         {budgetItems.map((item, index) => (
                             <TableRow key={index}>
-                                <TableCell><Input defaultValue={item.category} /></TableCell>
+                                <TableCell>
+                                    <Select
+                                        value={item.category}
+                                        onValueChange={(value) => handleCategoryChange(index, value as Category)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Choisir une catégorie" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {ExpenseCategory.map((cat) => (
+                                                <SelectItem key={cat} value={cat}>
+                                                    {cat}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </TableCell>
                                 <TableCell className="text-right"><Input type="number" defaultValue={item.planned} className="text-right" /></TableCell>
                                 <TableCell className="text-right">{item.spent.toLocaleString()} FCFA</TableCell>
                                 <TableCell className="text-right">{(item.planned - item.spent).toLocaleString()} FCFA</TableCell>
