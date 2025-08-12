@@ -1,7 +1,8 @@
 import Dashboard from '@/components/dashboard';
-import { getTransactions } from '@/lib/data';
+import { getTransactions, getTransfers } from '@/lib/data';
 
 export default async function Home() {
   const transactions = await getTransactions();
-  return <Dashboard initialTransactions={transactions} />;
+  const transfers = await getTransfers();
+  return <Dashboard initialTransactions={transactions} initialTransfers={transfers} />;
 }

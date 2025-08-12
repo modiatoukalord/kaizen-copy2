@@ -1,15 +1,16 @@
 
 import { ArrowDownLeft, ArrowUpRight, DollarSign, ArrowLeftRight, TrendingUp, CircleArrowLeft, Landmark, Smartphone, Wallet } from 'lucide-react';
-import type { Transaction } from '@/lib/types';
+import type { Transaction, Transfer } from '@/lib/types';
 import StatCard from './stat-card';
 import { TransactionAccount } from '@/lib/types';
 
 interface StatCardsProps {
   transactions: Transaction[];
+  transfers: Transfer[];
   filterType?: 'income' | 'expense';
 }
 
-export default function StatCards({ transactions, filterType }: StatCardsProps) {
+export default function StatCards({ transactions, transfers, filterType }: StatCardsProps) {
     const income = transactions
         .filter(t => t.type === 'income')
         .reduce((sum, t) => sum + t.amount, 0);
@@ -73,9 +74,18 @@ export default function StatCards({ transactions, filterType }: StatCardsProps) 
         const expenseForAccount = transactions
             .filter(t => t.type === 'expense' && t.account === account)
             .reduce((sum, t) => sum + t.amount, 0);
+        
+        const transfersIn = transfers
+            .filter(t => t.toAccount === account)
+            .reduce((sum, t) => sum + t.amount, 0);
+            
+        const transfersOut = transfers
+            .filter(t => t.fromAccount === account)
+            .reduce((sum, t) => sum + t.amount, 0);
+            
         return {
             account,
-            balance: incomeForAccount - expenseForAccount,
+            balance: incomeForAccount - expenseForAccount + transfersIn - transfersOut,
         };
     });
     

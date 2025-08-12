@@ -13,10 +13,9 @@ import {
   startOfYear,
   endOfYear,
 } from 'date-fns';
-import type { Transaction, Period, Category } from '@/lib/types';
+import type { Transaction, Period, Category, Transfer } from '@/lib/types';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import StatCards from './stat-cards';
-import ExpensesChart from './expenses-chart';
 import TransactionsTable from './transactions-table';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -26,20 +25,27 @@ import { Button } from '../ui/button';
 
 interface DashboardProps {
   initialTransactions: Transaction[];
+  initialTransfers?: Transfer[];
   title?: string;
   filterType?: 'income' | 'expense';
   hideCharts?: boolean;
 }
 
-export default function Dashboard({ initialTransactions, title="Tableau de bord", filterType, hideCharts = false }: DashboardProps) {
+export default function Dashboard({ initialTransactions, initialTransfers = [], title="Tableau de bord", filterType, hideCharts = false }: DashboardProps) {
   const [period, setPeriod] = useState<Period>('monthly');
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
+  const [transfers, setTransfers] = useState<Transfer[]>(initialTransfers);
+
 
   React.useEffect(() => {
     setTransactions(initialTransactions);
   }, [initialTransactions]);
+  
+  React.useEffect(() => {
+    setTransfers(initialTransfers);
+  }, [initialTransfers]);
 
-  const filteredTransactions = useMemo(() => {
+  const filteredData = useMemo(() => {
     const now = new Date();
     let interval;
 
@@ -59,13 +65,14 @@ export default function Dashboard({ initialTransactions, title="Tableau de bord"
     }
 
     let periodTransactions = transactions.filter(t => isWithinInterval(new Date(t.date), interval));
+    const periodTransfers = transfers.filter(t => isWithinInterval(new Date(t.date), interval));
 
     if (filterType) {
         periodTransactions = periodTransactions.filter(t => t.type === filterType);
     }
 
-    return periodTransactions;
-  }, [period, transactions, filterType]);
+    return { transactions: periodTransactions, transfers: periodTransfers };
+  }, [period, transactions, transfers, filterType]);
   
   const allTransactionsForType = useMemo(() => {
      if (filterType) {
@@ -102,7 +109,7 @@ export default function Dashboard({ initialTransactions, title="Tableau de bord"
             </Tabs>
             </div>
             
-            <StatCards transactions={filteredTransactions} filterType={filterType} />
+            <StatCards transactions={filteredData.transactions} transfers={filteredData.transfers} filterType={filterType} />
             
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                 <div className="col-span-4 lg:col-span-7">
@@ -131,7 +138,7 @@ export default function Dashboard({ initialTransactions, title="Tableau de bord"
           </Tabs>
         </div>
         
-        <StatCards transactions={filteredTransactions} filterType={filterType} />
+        <StatCards transactions={filteredData.transactions} transfers={filteredData.transfers} filterType={filterType} />
         
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             <div className="col-span-4 lg:col-span-7">
