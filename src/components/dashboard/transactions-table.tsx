@@ -12,8 +12,10 @@ import {
   ColumnFiltersState,
   getFilteredRowModel,
   getPaginationRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
 } from '@tanstack/react-table';
-import { MoreHorizontal, Pencil } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowUpDown } from 'lucide-react';
@@ -26,21 +28,29 @@ import { useCurrency } from '@/contexts/currency-context';
 import { DataTableFacetedFilter } from './data-table-faceted-filter';
 import { TransactionAccount, IncomeCategory, ExpenseCategory } from '@/lib/types';
 import { Input } from '@/components/ui/input';
-import { format } from 'date-fns';
-
+import { format, parseISO } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface TransactionsTableProps {
   transactions: Transaction[];
   filterType?: 'income' | 'expense';
   categoryOptions: { label: string; value: string; }[];
+  globalFilter?: string;
 }
 
-export default function TransactionsTable({ transactions, filterType, categoryOptions }: TransactionsTableProps) {
+export default function TransactionsTable({ transactions, filterType, categoryOptions, globalFilter: initialGlobalFilter }: TransactionsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: 'date', desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = React.useState(initialGlobalFilter ?? '');
   const { currency } = useCurrency();
+
+  React.useEffect(() => {
+    if (initialGlobalFilter !== undefined) {
+      setGlobalFilter(initialGlobalFilter);
+    }
+  }, [initialGlobalFilter]);
 
   const columns: ColumnDef<Transaction>[] = [
     {
@@ -51,7 +61,7 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
-      cell: ({ row }) => format(new Date(row.getValue('date')), 'dd/MM/yyyy'),
+      cell: ({ row }) => format(parseISO(row.getValue('date')), 'dd/MM/yyyy', { locale: fr }),
     },
     {
       accessorKey: 'description',
@@ -114,19 +124,23 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
   const table = useReactTable({
     data: transactions,
     columns,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
     state: {
       sorting,
       columnFilters,
+      globalFilter,
     },
   });
 
-  const isFiltered = table.getState().columnFilters.length > 0;
+  const isFiltered = table.getState().columnFilters.length > 0 || globalFilter;
 
   return (
     <Card className="h-full flex flex-col">
@@ -135,10 +149,10 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
         <CardDescription>Une liste de vos activités financières.</CardDescription>
         <div className="flex items-center gap-2 py-4">
             <Input
-              placeholder="Filtrer par description..."
-              value={(table.getColumn('description')?.getFilterValue() as string) ?? ''}
+              placeholder="Filtrer toutes les colonnes..."
+              value={globalFilter ?? ''}
               onChange={(event) =>
-                table.getColumn('description')?.setFilterValue(event.target.value)
+                setGlobalFilter(event.target.value)
               }
               className="max-w-sm"
             />
@@ -159,7 +173,10 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
             {isFiltered && (
                 <Button
                     variant="ghost"
-                    onClick={() => table.resetColumnFilters()}
+                    onClick={() => {
+                        table.resetColumnFilters();
+                        setGlobalFilter('');
+                    }}
                     className="h-10 px-2 lg:px-3"
                 >
                     Réinitialiser
