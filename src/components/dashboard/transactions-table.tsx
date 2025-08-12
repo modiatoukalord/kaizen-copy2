@@ -18,19 +18,23 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { Transaction } from '@/lib/types';
+import type { Transaction, Category } from '@/lib/types';
 import { formatCurrency, cn } from '@/lib/utils';
 import { CategoryBadge } from './category-badge';
 import { AddTransactionSheet } from './add-transaction-sheet';
 import { useCurrency } from '@/contexts/currency-context';
+import { DataTableFacetedFilter } from './data-table-faceted-filter';
+import { TransactionAccount, IncomeCategory, ExpenseCategory } from '@/lib/types';
+import { Input } from '@/components/ui/input';
 
 
 interface TransactionsTableProps {
   transactions: Transaction[];
   filterType?: 'income' | 'expense';
+  showFilters?: boolean;
 }
 
-export default function TransactionsTable({ transactions }: TransactionsTableProps) {
+export default function TransactionsTable({ transactions, filterType, showFilters = false }: TransactionsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: 'date', desc: true },
   ]);
@@ -121,11 +125,39 @@ export default function TransactionsTable({ transactions }: TransactionsTablePro
     },
   });
 
+  const categoryOptions = (filterType === 'income' ? IncomeCategory : ExpenseCategory).map(c => ({label: c, value: c}));
+
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle>Transactions Récentes</CardTitle>
         <CardDescription>Une liste de vos activités financières récentes.</CardDescription>
+        {showFilters && (
+            <div className="flex items-center gap-2 pt-4">
+                <Input
+                    placeholder="Filtrer par description..."
+                    value={(table.getColumn('description')?.getFilterValue() as string) ?? ''}
+                    onChange={(event) =>
+                        table.getColumn('description')?.setFilterValue(event.target.value)
+                    }
+                    className="max-w-sm"
+                />
+                {table.getColumn('account') && (
+                    <DataTableFacetedFilter
+                        column={table.getColumn('account')}
+                        title="Comptes"
+                        options={TransactionAccount.map(acc => ({label: acc, value: acc}))}
+                    />
+                )}
+                {table.getColumn('category') && (
+                    <DataTableFacetedFilter
+                        column={table.getColumn('category')}
+                        title="Catégories"
+                        options={categoryOptions}
+                    />
+                )}
+            </div>
+        )}
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto">
         <Table>
