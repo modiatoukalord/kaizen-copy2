@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from '@/components/ui/button';
@@ -11,22 +11,73 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ExpenseCategory, TransactionCategory } from '@/lib/types';
-import type { Category } from '@/lib/types';
+import type { Category, Transaction } from '@/lib/types';
+import { getTransactions } from '@/lib/data';
+import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { useCurrency } from '@/contexts/currency-context';
+import { formatCurrency } from '@/lib/utils';
 
-// Mock data for budget plan
-const initialBudgetItems = [
-    { category: 'Nourriture' as Category, planned: 200000, spent: 150000 },
-    { category: 'Transport' as Category, planned: 50000, spent: 35000 },
-    { category: 'Divertissement' as Category, planned: 75000, spent: 95000 },
-];
 
+type BudgetItem = {
+    category: Category;
+    planned: number;
+};
 
 export default function PlanningPage() {
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
-  const [budgetItems, setBudgetItems] = React.useState(initialBudgetItems);
+  const { currency } = useCurrency();
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([
+    { category: 'Nourriture', planned: 200000 },
+    { category: 'Transport', planned: 50000 },
+    { category: 'Divertissement', planned: 75000 },
+  ]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'yyyy-MM'));
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      const allTransactions = await getTransactions();
+      setTransactions(allTransactions);
+    };
+    fetchTransactions();
+  }, []);
+
+  const months = useMemo(() => {
+    const monthOptions = [];
+    for (let i = 0; i < 12; i++) {
+      const date = subMonths(new Date(), i);
+      monthOptions.push({
+        value: format(date, 'yyyy-MM'),
+        label: format(date, 'MMMM yyyy', { locale: fr }),
+      });
+    }
+    return monthOptions;
+  }, []);
+
+  const monthlyTransactions = useMemo(() => {
+    if (!selectedMonth) return [];
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const startDate = startOfMonth(new Date(year, month - 1));
+    const endDate = endOfMonth(new Date(year, month - 1));
+    const interval = { start: startDate, end: endDate };
+    return transactions.filter(t => t.type === 'expense' && isWithinInterval(new Date(t.date), interval));
+  }, [selectedMonth, transactions]);
+
+  const budgetWithSpent = useMemo(() => {
+    const spentByCategory = monthlyTransactions.reduce((acc, t) => {
+        acc[t.category] = (acc[t.category] || 0) + t.amount;
+        return acc;
+    }, {} as Record<Category, number>);
+
+    return budgetItems.map(item => ({
+        ...item,
+        spent: spentByCategory[item.category] || 0,
+    }));
+  }, [budgetItems, monthlyTransactions]);
 
   const handleAddItem = () => {
-    setBudgetItems([...budgetItems, { category: 'Autre', planned: 0, spent: 0 }]);
+    setBudgetItems([...budgetItems, { category: 'Autre', planned: 0 }]);
   }
 
   const handleRemoveItem = (index: number) => {
@@ -39,6 +90,13 @@ export default function PlanningPage() {
     setBudgetItems(newItems);
   }
 
+  const handlePlannedChange = (index: number, newPlanned: number) => {
+    const newItems = [...budgetItems];
+    newItems[index].planned = newPlanned;
+    setBudgetItems(newItems);
+  };
+
+
   return (
     <div className="flex flex-col gap-8">
       <div>
@@ -49,8 +107,26 @@ export default function PlanningPage() {
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Plan budgétaire</CardTitle>
-              <CardDescription>Définissez et suivez votre budget mensuel.</CardDescription>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle>Plan budgétaire</CardTitle>
+                        <CardDescription>Définissez et suivez votre budget mensuel.</CardDescription>
+                    </div>
+                     <div className="w-[200px]">
+                        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                            <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner un mois" />
+                            </SelectTrigger>
+                            <SelectContent>
+                            {months.map(month => (
+                                <SelectItem key={month.value} value={month.value}>
+                                {month.label}
+                                </SelectItem>
+                            ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -64,9 +140,9 @@ export default function PlanningPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {budgetItems.map((item, index) => (
+                        {budgetWithSpent.map((item, index) => (
                             <TableRow key={index}>
-                                <TableCell>
+                                <TableCell className="w-[200px]">
                                     <Select
                                         value={item.category}
                                         onValueChange={(value) => handleCategoryChange(index, value as Category)}
@@ -83,9 +159,16 @@ export default function PlanningPage() {
                                         </SelectContent>
                                     </Select>
                                 </TableCell>
-                                <TableCell className="text-right"><Input type="number" defaultValue={item.planned} className="text-right" /></TableCell>
-                                <TableCell className="text-right">{item.spent.toLocaleString()} FCFA</TableCell>
-                                <TableCell className="text-right">{(item.planned - item.spent).toLocaleString()} FCFA</TableCell>
+                                <TableCell className="text-right">
+                                    <Input 
+                                        type="number" 
+                                        value={item.planned}
+                                        onChange={(e) => handlePlannedChange(index, Number(e.target.value))}
+                                        className="text-right" 
+                                    />
+                                </TableCell>
+                                <TableCell className="text-right">{formatCurrency(item.spent, currency)}</TableCell>
+                                <TableCell className="text-right">{formatCurrency(item.planned - item.spent, currency)}</TableCell>
                                 <TableCell>
                                     <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(index)}>
                                         <Trash2 className="h-4 w-4" />
