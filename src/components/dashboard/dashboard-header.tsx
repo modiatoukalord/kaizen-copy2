@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { PiggyBank, PlusCircle, ArrowRightLeft, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AddTransactionSheet } from './add-transaction-sheet';
@@ -18,7 +18,7 @@ import {
 import { useCurrency } from '@/contexts/currency-context';
 import { useEffect, useMemo, useState } from 'react';
 import { getTransactions } from '@/lib/data';
-import type { Transaction, Category, Transfer } from '@/lib/types';
+import type { Transaction, Category, Transfer, Scope } from '@/lib/types';
 import { format, startOfMonth, endOfMonth, isWithinInterval, isFuture, differenceInDays } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 
@@ -33,11 +33,13 @@ type CalendarEvent = {
   date: Date;
   description: string;
   amount: number;
+  scope: Scope;
 };
 
 
 export default function DashboardHeader() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { currency, setCurrency } = useCurrency();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([
@@ -46,6 +48,8 @@ export default function DashboardHeader() {
     { category: 'Divertissement', planned: 75000 },
   ]);
    const [events, setEvents] = useState<CalendarEvent[]>([]);
+
+   const scope: Scope = (searchParams.get('scope') as Scope) || 'Personnel';
 
 
   useEffect(() => {
@@ -83,9 +87,9 @@ export default function DashboardHeader() {
   const upcomingEventsCount = useMemo(() => {
     const today = new Date();
     return events.filter(event => 
-        isFuture(event.date) && differenceInDays(event.date, today) <= 7
+        event.scope === scope && isFuture(event.date) && differenceInDays(event.date, today) <= 7
     ).length;
-  }, [events]);
+  }, [events, scope]);
 
   const totalAlerts = overBudgetItemsCount + upcomingEventsCount;
 
@@ -115,21 +119,25 @@ export default function DashboardHeader() {
           <PiggyBank className="h-6 w-6 text-primary" />
           <span className="font-headline">Le KAIZEN</span>
         </Link>
-        {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'text-muted-foreground transition-colors hover:text-foreground flex items-center gap-2',
-                pathname === item.href && 'text-foreground'
-              )}
-            >
-              {item.label}
-              {item.alerts !== undefined && item.alerts > 0 && (
-                 <Badge variant="destructive" className="h-5 w-5 justify-center rounded-full p-0">{item.alerts}</Badge>
-              )}
-            </Link>
-          ))}
+        {navItems.map((item) => {
+            const finalHref = item.href === '/' || item.href === '/transfers' ? item.href : `${item.href}?scope=${scope}`;
+            const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+            return (
+                <Link
+                key={item.href}
+                href={finalHref}
+                className={cn(
+                    'text-muted-foreground transition-colors hover:text-foreground flex items-center gap-2',
+                    isActive && 'text-foreground'
+                )}
+                >
+                {item.label}
+                {item.alerts !== undefined && item.alerts > 0 && (
+                    <Badge variant="destructive" className="h-5 w-5 justify-center rounded-full p-0">{item.alerts}</Badge>
+                )}
+                </Link>
+            );
+        })}
       </nav>
       <div className="flex w-full items-center justify-end gap-4 md:ml-auto md:gap-2 lg:gap-4">
         <Select value={currency} onValueChange={setCurrency}>
@@ -151,7 +159,7 @@ export default function DashboardHeader() {
                   </Button>
               </AddTransferSheet>
           ) : (
-              <AddTransactionSheet type={transactionType}>
+              <AddTransactionSheet type={transactionType} scope={scope}>
                   <Button>
                       <PlusCircle className="mr-2 h-4 w-4" />
                       Ajouter une transaction

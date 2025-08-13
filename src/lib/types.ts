@@ -1,3 +1,4 @@
+
 import type { z } from 'zod';
 import type { categorizeTransaction } from '@/ai/flows/categorize-transaction';
 
@@ -29,13 +30,19 @@ export const ExpenseSubCategory = {
   ],
   Transport: [
     'Transport'
+  ],
+  Entreprise: [
+    'Salaire',
+    'Factures',
+    'Autre',
   ]
 } as const;
 
 export const AllExpenseSubCategories = [
     ...ExpenseSubCategory.Personnel,
     ...ExpenseSubCategory.Maison,
-    ...ExpenseSubCategory.Transport
+    ...ExpenseSubCategory.Transport,
+    ...ExpenseSubCategory.Entreprise
 ].sort((a,b) => a.localeCompare(b)) as (
   'Aide sociale' |
   'Assurances' |
@@ -47,6 +54,7 @@ export const AllExpenseSubCategories = [
   'Nourriture' |
   'Prêt' |
   'Remboursement' |
+  'Salaire' |
   'Transport' |
   'Travaux' |
   'Vacances et voyage' |

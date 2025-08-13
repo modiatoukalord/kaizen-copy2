@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from '@/components/ui/button';
@@ -10,8 +11,9 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PlusCircle, Trash2, AlertTriangle, Bell } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ExpenseSubCategory, AllExpenseSubCategories } from '@/lib/types';
-import type { Category, Transaction, ExpenseSubCategoryType } from '@/lib/types';
+import type { Category, Transaction, ExpenseSubCategoryType, Scope } from '@/lib/types';
 import { getTransactions } from '@/lib/data';
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, getYear, isSameDay, isFuture, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -30,10 +32,15 @@ type CalendarEvent = {
   date: Date;
   description: string;
   amount: number;
+  scope: Scope;
 };
 
 export default function PlanningPage() {
   const { currency } = useCurrency();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const scope: Scope = (searchParams.get('scope') as Scope) || 'Personnel';
+
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([
     { category: 'Nourriture', planned: 200000 },
@@ -55,6 +62,10 @@ export default function PlanningPage() {
     };
     fetchTransactions();
   }, []);
+  
+  const handleTabChange = (value: string) => {
+    router.push(`/planning?scope=${value}`);
+  };
 
   const years = useMemo(() => {
     const currentYear = getYear(new Date());
@@ -82,8 +93,8 @@ export default function PlanningPage() {
     const startDate = startOfMonth(new Date(selectedYear, parseInt(selectedMonth, 10) - 1));
     const endDate = endOfMonth(new Date(selectedYear, parseInt(selectedMonth, 10) - 1));
     const interval = { start: startDate, end: endDate };
-    return transactions.filter(t => t.type === 'expense' && isWithinInterval(new Date(t.date), interval));
-  }, [selectedMonth, selectedYear, transactions]);
+    return transactions.filter(t => t.type === 'expense' && t.scope === scope && isWithinInterval(new Date(t.date), interval));
+  }, [selectedMonth, selectedYear, transactions, scope]);
 
   const budgetWithSpent = useMemo(() => {
     const spentByCategory = monthlyTransactions.reduce((acc, t) => {
@@ -104,14 +115,14 @@ export default function PlanningPage() {
   const upcomingEvents = useMemo(() => {
     const today = new Date();
     return events.filter(event => 
-        isFuture(event.date) && differenceInDays(event.date, today) <= 7
+        event.scope === scope && isFuture(event.date) && differenceInDays(event.date, today) <= 7
     ).sort((a,b) => a.date.getTime() - b.date.getTime());
-  }, [events]);
+  }, [events, scope]);
   
   const eventsForSelectedDate = useMemo(() => {
     if (!selectedDate) return [];
-    return events.filter(event => isSameDay(event.date, selectedDate));
-  }, [events, selectedDate]);
+    return events.filter(event => event.scope === scope && isSameDay(event.date, selectedDate));
+  }, [events, selectedDate, scope]);
 
 
   const handleAddItem = () => {
@@ -141,6 +152,7 @@ export default function PlanningPage() {
         date: selectedDate,
         description: newEventDescription,
         amount: Number(newEventAmount),
+        scope: scope,
     };
     setEvents([...events, newEvent]);
     setNewEventDescription('');
@@ -150,12 +162,20 @@ export default function PlanningPage() {
   const handleRemoveEvent = (eventId: string) => {
     setEvents(events.filter(event => event.id !== eventId));
   };
+  
+  const title = scope === 'Personnel' ? 'Planning Personnel' : "Planning d'Entreprise";
 
 
   return (
     <div className="flex flex-col gap-8">
+        <Tabs value={scope} onValueChange={handleTabChange} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 max-w-md">
+                <TabsTrigger value="Personnel">Personnel</TabsTrigger>
+                <TabsTrigger value="Entreprise">Entreprise</TabsTrigger>
+            </TabsList>
+        </Tabs>
       <div>
-        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Planning</h1>
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{title}</h1>
         <p className="text-muted-foreground">Planifiez vos projets, dépenses et budget.</p>
       </div>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
