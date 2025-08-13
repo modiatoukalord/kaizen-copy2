@@ -17,6 +17,12 @@ export const ExpenseCategory = [
   'Investissement',
   'Remboursement',
   'Prêt',
+  'Travaux',
+  'Equipements maison',
+  'Vêtements et accessoires',
+  'Vacances et voyage',
+  'Factures',
+  'Assurances',
   'Autre',
 ] as const;
 

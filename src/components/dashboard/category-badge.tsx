@@ -13,6 +13,12 @@ import {
   HandCoins,
   BookUser,
   ScrollText,
+  Wrench,
+  Home,
+  Shirt,
+  Plane,
+  FileText,
+  Shield,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { Category } from '@/lib/types';
@@ -33,6 +39,12 @@ export const categoryIcons: Record<Category, LucideIcon> = {
   Prêt: HandCoins,
   Dette: BookUser,
   Créance: ScrollText,
+  Travaux: Wrench,
+  'Equipements maison': Home,
+  'Vêtements et accessoires': Shirt,
+  'Vacances et voyage': Plane,
+  Factures: FileText,
+  Assurances: Shield,
 };
 
 interface CategoryBadgeProps {
