@@ -255,8 +255,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
                 </Select>
               </div>
             )}
-             {isEditing && <input type="hidden" name="type" value={form.getValues('type')} />}
-             {!isEditing && initialType && <input type="hidden" name="type" value={initialType} />}
+             {(isEditing || initialType) && <input type="hidden" name="type" value={form.getValues('type')} />}
             <div className={cn("space-y-2", (!initialType && !isEditing) ? "" : "col-span-2")}>
               <Label>Date</Label>
               <Popover>
