@@ -4,7 +4,7 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { categorizeTransaction as categorizeTransactionFlow } from '@/ai/flows/categorize-transaction';
-import { TransactionCategory, TransactionAccount, type CategorizeTransactionInput, ExpenseParentCategory } from '@/lib/types';
+import { TransactionCategory, TransactionAccount, type CategorizeTransactionInput, ExpenseParentCategory, TransactionScope } from '@/lib/types';
 import { addTransaction as dbAddTransaction, getTransactions, updateTransaction as dbUpdateTransaction, deleteTransaction as dbDeleteTransaction, addTransfer as dbAddTransfer, updateTransfer as dbUpdateTransfer, deleteTransfer as dbDeleteTransfer } from '@/lib/data';
 
 const formSchema = z.object({
@@ -12,6 +12,7 @@ const formSchema = z.object({
   description: z.string().min(1, 'La description est requise'),
   amount: z.coerce.number().min(0.01, 'Le montant doit être positif'),
   type: z.enum(['income', 'expense']),
+  scope: z.enum(TransactionScope),
   parentCategory: z.enum(ExpenseParentCategory).optional(),
   category: z.enum(TransactionCategory),
   account: z.enum(TransactionAccount),

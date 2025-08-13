@@ -4,17 +4,17 @@ import type { Transaction, Transfer } from './types';
 // In a real application, you would use a proper database.
 if (!global.transactions) {
   global.transactions = [
-    { id: '1', date: new Date(new Date().setDate(1)).toISOString(), description: 'Salaire mensuel', amount: 3000000, category: 'Salaire', type: 'income', account: 'Banque' },
-    { id: '2', date: new Date(new Date().setDate(1)).toISOString(), description: 'Loyer de l\'appartement', amount: 900000, category: 'Autre', parentCategory: 'Personnel', type: 'expense', account: 'Banque' },
-    { id: '3', date: new Date(new Date().setDate(3)).toISOString(), description: 'Achats d\'épicerie', amount: 150000, category: 'Nourriture', parentCategory: 'Personnel', type: 'expense', account: 'Mobile money' },
-    { id: '4', date: new Date(new Date().setDate(5)).toISOString(), description: 'Facture d\'électricité', amount: 50000, category: 'Factures', parentCategory: 'Maison', type: 'expense', account: 'Banque' },
-    { id: '5', date: new Date(new Date().setDate(10)).toISOString(), description: 'Dîner entre amis', amount: 75000, category: 'Divertissement', parentCategory: 'Personnel', type: 'expense', account: 'Espèces' },
-    { id: '6', date: new Date(new Date().setDate(12)).toISOString(), description: 'Essence pour la voiture', amount: 35000, category: 'Transport', parentCategory: 'Transport', type: 'expense', account: 'Mobile money' },
-    { id: '7', date: new Date(new Date().setDate(15)).toISOString(), description: 'Nouveaux écouteurs', amount: 120000, category: 'Autre', parentCategory: 'Personnel', type: 'expense', account: 'Banque' },
-    { id: '8', date: new Date(new Date().setDate(20)).toISOString(), description: 'Billets de cinéma', amount: 20000, category: 'Divertissement', parentCategory: 'Personnel', type: 'expense', account: 'Espèces' },
-    { id: '9', date: new Date(new Date().setDate(1)).toISOString(), description: 'Projet Freelance', amount: 600000, category: 'Salaire', type: 'income', account: 'Banque' },
-    { id: '10', date: new Date(new Date().setDate(15)).toISOString(), description: 'Cadeau d\'anniversaire', amount: 60000, category: 'Don', type: 'income', account: 'Espèces' },
-    { id: '11', date: new Date(new Date().setDate(18)).toISOString(), description: 'Aide sociale du gouvernement', amount: 100000, category: 'Aide sociale', parentCategory: 'Personnel', type: 'expense', account: 'Banque' },
+    { id: '1', date: new Date(new Date().setDate(1)).toISOString(), description: 'Salaire mensuel', amount: 3000000, category: 'Salaire', type: 'income', account: 'Banque', scope: 'Personnel' },
+    { id: '2', date: new Date(new Date().setDate(1)).toISOString(), description: 'Loyer de l\'appartement', amount: 900000, category: 'Autre', parentCategory: 'Personnel', type: 'expense', account: 'Banque', scope: 'Personnel' },
+    { id: '3', date: new Date(new Date().setDate(3)).toISOString(), description: 'Achats d\'épicerie', amount: 150000, category: 'Nourriture', parentCategory: 'Personnel', type: 'expense', account: 'Mobile money', scope: 'Personnel' },
+    { id: '4', date: new Date(new Date().setDate(5)).toISOString(), description: 'Facture d\'électricité', amount: 50000, category: 'Factures', parentCategory: 'Maison', type: 'expense', account: 'Banque', scope: 'Personnel' },
+    { id: '5', date: new Date(new Date().setDate(10)).toISOString(), description: 'Dîner entre amis', amount: 75000, category: 'Divertissement', parentCategory: 'Personnel', type: 'expense', account: 'Espèces', scope: 'Personnel' },
+    { id: '6', date: new Date(new Date().setDate(12)).toISOString(), description: 'Essence pour la voiture', amount: 35000, category: 'Transport', parentCategory: 'Transport', type: 'expense', account: 'Mobile money', scope: 'Personnel' },
+    { id: '7', date: new Date(new Date().setDate(15)).toISOString(), description: 'Nouveaux écouteurs', amount: 120000, category: 'Autre', parentCategory: 'Personnel', type: 'expense', account: 'Banque', scope: 'Personnel' },
+    { id: '8', date: new Date(new Date().setDate(20)).toISOString(), description: 'Billets de cinéma', amount: 20000, category: 'Divertissement', parentCategory: 'Personnel', type: 'expense', account: 'Espèces', scope: 'Personnel' },
+    { id: '9', date: new Date(new Date().setDate(1)).toISOString(), description: 'Projet Freelance', amount: 600000, category: 'Salaire', type: 'income', account: 'Banque', scope: 'Entreprise' },
+    { id: '10', date: new Date(new Date().setDate(15)).toISOString(), description: 'Cadeau d\'anniversaire', amount: 60000, category: 'Don', type: 'income', account: 'Espèces', scope: 'Personnel' },
+    { id: '11', date: new Date(new Date().setDate(18)).toISOString(), description: 'Aide sociale du gouvernement', amount: 100000, category: 'Aide sociale', parentCategory: 'Personnel', type: 'expense', account: 'Banque', scope: 'Personnel' },
   ] as Transaction[];
 }
 

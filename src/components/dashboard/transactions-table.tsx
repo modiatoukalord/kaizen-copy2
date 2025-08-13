@@ -20,7 +20,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { Transaction, Category } from '@/lib/types';
+import type { Transaction, Category, Scope } from '@/lib/types';
 import { formatCurrency, cn } from '@/lib/utils';
 import { CategoryBadge } from './category-badge';
 import { AddTransactionSheet } from './add-transaction-sheet';
@@ -54,12 +54,13 @@ import { toast } from '@/hooks/use-toast';
 interface TransactionsTableProps {
   transactions: Transaction[];
   filterType?: 'income' | 'expense';
+  scope?: Scope;
   categoryOptions: { label: string; value: string; }[];
   globalFilter: string;
   onGlobalFilterChange: (filter: string) => void;
 }
 
-export default function TransactionsTable({ transactions, filterType, categoryOptions, globalFilter, onGlobalFilterChange }: TransactionsTableProps) {
+export default function TransactionsTable({ transactions, filterType, scope, categoryOptions, globalFilter, onGlobalFilterChange }: TransactionsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: 'date', desc: true },
   ]);
@@ -181,7 +182,7 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <AddTransactionSheet transaction={transaction}>
+                              <AddTransactionSheet transaction={transaction} scope={scope}>
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                     <Pencil className="mr-2 h-4 w-4" />
                                     Modifier
@@ -218,7 +219,7 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
 
     return baseColumns;
 
-  }, [filterType, currency, isPending]);
+  }, [filterType, currency, isPending, scope]);
 
   const table = useReactTable({
     data: transactions,

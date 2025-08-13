@@ -67,6 +67,12 @@ export const TransactionAccount = [
     'Espèces'
 ] as const;
 
+export const TransactionScope = [
+  'Personnel',
+  'Entreprise'
+] as const;
+
+export type Scope = (typeof TransactionScope)[number];
 export type Account = (typeof TransactionAccount)[number];
 export type Category = (typeof TransactionCategory)[number];
 export type IncomeCategoryType = (typeof IncomeCategory)[number];
@@ -79,6 +85,7 @@ export type Transaction = {
   date: string; // ISO 8601 format
   description: string;
   amount: number;
+  scope: Scope;
   parentCategory?: ExpenseParentCategoryType;
   category: Category;
   account: Account;

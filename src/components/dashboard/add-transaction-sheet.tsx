@@ -32,7 +32,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { toast } from '@/hooks/use-toast';
-import { TransactionCategory, TransactionAccount, type Category, type Account, IncomeCategory, ExpenseSubCategory, ExpenseParentCategory, type Transaction, type ExpenseParentCategoryType, type ExpenseSubCategoryType } from '@/lib/types';
+import { TransactionCategory, TransactionAccount, type Category, type Account, IncomeCategory, ExpenseSubCategory, ExpenseParentCategory, type Transaction, type ExpenseParentCategoryType, type ExpenseSubCategoryType, TransactionScope, type Scope } from '@/lib/types';
 import { handleAddOrUpdateTransaction, suggestCategory } from '@/app/actions';
 
 const transactionFormSchema = z.object({
@@ -44,6 +44,7 @@ const transactionFormSchema = z.object({
     message: 'Veuillez entrer un montant positif.',
   }),
   type: z.enum(['income', 'expense']),
+  scope: z.enum(TransactionScope),
   parentCategory: z.enum(ExpenseParentCategory).optional(),
   category: z.enum(TransactionCategory),
   account: z.enum(TransactionAccount),
@@ -58,7 +59,7 @@ const initialState = {
   success: false,
 };
 
-export function AddTransactionSheet({ children, type: initialType, transaction }: { children: React.ReactNode, type?: 'income' | 'expense', transaction?: Transaction }) {
+export function AddTransactionSheet({ children, type: initialType, transaction, scope: initialScope }: { children: React.ReactNode, type?: 'income' | 'expense', transaction?: Transaction, scope?: Scope }) {
   const [open, setOpen] = React.useState(false);
   const [isSuggesting, setIsSuggesting] = React.useState(false);
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -72,8 +73,9 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
         description: transaction?.description || '',
         amount: transaction?.amount || 0,
         type: transaction?.type || initialType || 'expense',
+        scope: transaction?.scope || initialScope || 'Personnel',
         parentCategory: transaction?.parentCategory || undefined,
-        category: transaction?.category || 'Other',
+        category: transaction?.category || 'Autre',
         account: transaction?.account || 'Banque',
         date: transaction?.date ? new Date(transaction.date) : new Date(),
     },
@@ -86,6 +88,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
         description: transaction.description,
         amount: transaction.amount,
         type: transaction.type,
+        scope: transaction.scope || 'Personnel',
         parentCategory: transaction.parentCategory,
         category: transaction.category,
         account: transaction.account,
@@ -96,13 +99,14 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
             description: '',
             amount: 0,
             type: initialType || 'expense',
+            scope: initialScope || 'Personnel',
             parentCategory: 'Personnel',
             category: 'Autre',
             account: 'Banque',
             date: new Date(),
         });
     }
-  }, [transaction, form, initialType, open]);
+  }, [transaction, form, initialType, initialScope, open]);
 
 
   const transactionType = form.watch('type');
@@ -119,6 +123,12 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
         form.setValue('type', initialType);
     }
   }, [initialType, form, isEditing]);
+  
+  React.useEffect(() => {
+    if (initialScope && !isEditing) {
+        form.setValue('scope', initialScope);
+    }
+  }, [initialScope, form, isEditing]);
 
   React.useEffect(() => {
     // Reset category if it's not in the available categories for the selected type
@@ -228,6 +238,8 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
           }}
         >
           {isEditing && <input type="hidden" name="id" value={transaction.id} />}
+           { (isEditing || initialType || initialScope) && <input type="hidden" name="scope" value={form.getValues('scope')} />}
+
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <Input id="description" name="description" {...form.register('description')} />
