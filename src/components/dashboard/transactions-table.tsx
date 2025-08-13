@@ -255,49 +255,7 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
       <CardHeader>
         <CardTitle>Transactions</CardTitle>
         <CardDescription>Une liste de vos activités financières.</CardDescription>
-        <div className="flex items-center gap-2 py-4 flex-wrap">
-            <Input
-              placeholder="Filtrer toutes les colonnes..."
-              value={globalFilter ?? ''}
-              onChange={(event) =>
-                onGlobalFilterChange(event.target.value)
-              }
-              className="max-w-sm"
-            />
-            {filterType === 'expense' && table.getColumn('parentCategory') && (
-              <DataTableFacetedFilter
-                column={table.getColumn('parentCategory')}
-                title="Catégorie"
-                options={parentCategoryOptions}
-              />
-            )}
-            {table.getColumn('category') && (
-              <DataTableFacetedFilter
-                column={table.getColumn('category')}
-                title={filterType === 'expense' ? "Sous-catégorie" : "Catégorie"}
-                options={categoryOptions}
-              />
-            )}
-            {table.getColumn('account') && (
-                <DataTableFacetedFilter
-                    column={table.getColumn('account')}
-                    title="Compte"
-                    options={TransactionAccount.map(acc => ({ label: acc, value: acc }))}
-                />
-            )}
-            {isFiltered && (
-                <Button
-                    variant="ghost"
-                    onClick={() => {
-                        table.resetColumnFilters();
-                        onGlobalFilterChange('');
-                    }}
-                    className="h-10 px-2 lg:px-3"
-                >
-                    Réinitialiser
-                </Button>
-            )}
-        </div>
+        
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto">
         <Table>
