@@ -86,117 +86,139 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
     });
   }
 
-  const columns: ColumnDef<Transaction>[] = [
-    {
-      accessorKey: 'date',
-      header: ({ column }) => (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-          Date
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-      cell: ({ row }) => format(parseISO(row.getValue('date')), 'dd/MM/yyyy', { locale: fr }),
-    },
-    {
-      accessorKey: 'description',
-      header: 'Description',
-    },
-    {
-      accessorKey: 'account',
-      header: 'Compte',
-      cell: ({ row }) => <span>{row.original.account}</span>,
-      filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id));
-      },
-    },
-    {
-        accessorKey: 'parentCategory',
-        header: 'Catégorie',
-        cell: ({ row }) => <span>{row.original.parentCategory || 'N/A'}</span>,
-        filterFn: (row, id, value) => {
-          return value.includes(row.getValue(id));
-        },
-    },
-    {
-        accessorKey: 'category',
-        header: 'Sous-catégorie',
-        cell: ({ row }) => <CategoryBadge category={row.original.category} />,
-        filterFn: (row, id, value) => {
-          return value.includes(row.getValue(id));
-        },
-    },
-    {
-      accessorKey: 'amount',
-      header: ({ column }) => (
-        <div className="text-right">
+  const columns: ColumnDef<Transaction>[] = React.useMemo(() => {
+    const baseColumns: ColumnDef<Transaction>[] = [
+        {
+          accessorKey: 'date',
+          header: ({ column }) => (
             <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                Montant
-                <ArrowUpDown className="ml-2 h-4 w-4" />
+              Date
+              <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
-        </div>
-      ),
-      cell: ({ row }) => (
-        <div
-          className={cn(
-            'text-right font-medium',
-            row.original.type === 'income' ? 'text-chart-2' : 'text-foreground'
-          )}
-        >
-          {row.original.type === 'income' ? '+' : '-'}
-          {formatCurrency(row.original.amount, currency)}
-        </div>
-      ),
-    },
-    {
-        id: 'actions',
-        cell: ({ row }) => {
-            const transaction = row.original;
-            return (
-                <div className='flex justify-end'>
-                    <AlertDialog>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Ouvrir le menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <AddTransactionSheet transaction={transaction}>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Modifier
-                            </DropdownMenuItem>
-                          </AddTransactionSheet>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Supprimer
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <AlertDialogContent>
-                          <AlertDialogHeader>
-                              <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                  Cette action est irréversible. La transaction sera définitivement supprimée.
-                              </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                              <AlertDialogCancel>Annuler</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => onDelete(transaction.id)} disabled={isPending}>
-                                  Continuer
-                              </AlertDialogAction>
-                          </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                </div>
-            )
-        }
+          ),
+          cell: ({ row }) => format(parseISO(row.getValue('date')), 'dd/MM/yyyy', { locale: fr }),
+        },
+        {
+          accessorKey: 'description',
+          header: 'Description',
+        },
+        {
+          accessorKey: 'account',
+          header: 'Compte',
+          cell: ({ row }) => <span>{row.original.account}</span>,
+          filterFn: (row, id, value) => {
+            return value.includes(row.getValue(id));
+          },
+        },
+    ];
+
+    if (filterType === 'expense') {
+        baseColumns.push(
+            {
+                accessorKey: 'parentCategory',
+                header: 'Catégorie',
+                cell: ({ row }) => <span>{row.original.parentCategory || 'N/A'}</span>,
+                filterFn: (row, id, value) => {
+                  return value.includes(row.getValue(id));
+                },
+            },
+            {
+                accessorKey: 'category',
+                header: 'Sous-catégorie',
+                cell: ({ row }) => <CategoryBadge category={row.original.category} />,
+                filterFn: (row, id, value) => {
+                  return value.includes(row.getValue(id));
+                },
+            }
+        );
+    } else {
+         baseColumns.push({
+            accessorKey: 'category',
+            header: 'Catégorie',
+            cell: ({ row }) => <CategoryBadge category={row.original.category} />,
+            filterFn: (row, id, value) => {
+                return value.includes(row.getValue(id));
+            },
+        });
     }
-  ];
+
+    baseColumns.push(
+        {
+          accessorKey: 'amount',
+          header: ({ column }) => (
+            <div className="text-right">
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                    Montant
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            </div>
+          ),
+          cell: ({ row }) => (
+            <div
+              className={cn(
+                'text-right font-medium',
+                row.original.type === 'income' ? 'text-chart-2' : 'text-foreground'
+              )}
+            >
+              {row.original.type === 'income' ? '+' : '-'}
+              {formatCurrency(row.original.amount, currency)}
+            </div>
+          ),
+        },
+        {
+            id: 'actions',
+            cell: ({ row }) => {
+                const transaction = row.original;
+                return (
+                    <div className='flex justify-end'>
+                        <AlertDialog>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Ouvrir le menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <AddTransactionSheet transaction={transaction}>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Modifier
+                                </DropdownMenuItem>
+                              </AddTransactionSheet>
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Supprimer
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          <AlertDialogContent>
+                              <AlertDialogHeader>
+                                  <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                      Cette action est irréversible. La transaction sera définitivement supprimée.
+                                  </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => onDelete(transaction.id)} disabled={isPending}>
+                                      Continuer
+                                  </AlertDialogAction>
+                              </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                )
+            }
+        }
+    );
+
+    return baseColumns;
+
+  }, [filterType, currency, isPending]);
 
   const table = useReactTable({
     data: transactions,
@@ -215,6 +237,11 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
       columnFilters,
       globalFilter,
     },
+    initialState: {
+        columnVisibility: {
+            parentCategory: filterType === 'expense'
+        }
+    }
   });
 
   const isFiltered = table.getState().columnFilters.length > 0 || !!globalFilter;
@@ -237,7 +264,7 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
               }
               className="max-w-sm"
             />
-            {filterType !== 'income' && table.getColumn('parentCategory') && (
+            {filterType === 'expense' && table.getColumn('parentCategory') && (
               <DataTableFacetedFilter
                 column={table.getColumn('parentCategory')}
                 title="Catégorie"
@@ -247,7 +274,7 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
             {table.getColumn('category') && (
               <DataTableFacetedFilter
                 column={table.getColumn('category')}
-                title="Sous-catégorie"
+                title={filterType === 'expense' ? "Sous-catégorie" : "Catégorie"}
                 options={categoryOptions}
               />
             )}
