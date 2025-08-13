@@ -22,7 +22,7 @@ import TransactionsTable from './transactions-table';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { DataTableFacetedFilter } from './data-table-faceted-filter';
-import { IncomeCategory, ExpenseCategory, TransactionAccount } from '@/lib/types';
+import { IncomeCategory, AllExpenseSubCategories } from '@/lib/types';
 import { Button } from '../ui/button';
 import SummaryChart from './summary-chart';
 
@@ -81,9 +81,9 @@ export default function Dashboard({ initialTransactions, initialTransfers = [], 
     if (filterType === 'income') {
       categories = IncomeCategory;
     } else if (filterType === 'expense') {
-      categories = ExpenseCategory;
+      categories = AllExpenseSubCategories;
     } else {
-      categories = [...IncomeCategory, ...ExpenseCategory];
+      categories = [...IncomeCategory, ...AllExpenseSubCategories];
     }
     return categories.map(cat => ({ label: cat, value: cat }));
   }, [filterType]);

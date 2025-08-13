@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { Calendar as CalendarIcon, Loader2, Wand2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -31,7 +32,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { toast } from '@/hooks/use-toast';
-import { TransactionCategory, TransactionAccount, type Category, type Account, IncomeCategory, ExpenseCategory, type Transaction } from '@/lib/types';
+import { TransactionCategory, TransactionAccount, type Category, type Account, IncomeCategory, ExpenseSubCategory, ExpenseParentCategory, type Transaction, type ExpenseParentCategoryType, type ExpenseSubCategoryType } from '@/lib/types';
 import { handleAddOrUpdateTransaction, suggestCategory } from '@/app/actions';
 
 const transactionFormSchema = z.object({
@@ -43,6 +44,7 @@ const transactionFormSchema = z.object({
     message: 'Veuillez entrer un montant positif.',
   }),
   type: z.enum(['income', 'expense']),
+  parentCategory: z.enum(ExpenseParentCategory).optional(),
   category: z.enum(TransactionCategory),
   account: z.enum(TransactionAccount),
   date: z.date(),
@@ -70,6 +72,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
         description: transaction?.description || '',
         amount: transaction?.amount || 0,
         type: transaction?.type || initialType || 'expense',
+        parentCategory: transaction?.parentCategory || undefined,
         category: transaction?.category || 'Other',
         account: transaction?.account || 'Banque',
         date: transaction?.date ? new Date(transaction.date) : new Date(),
@@ -83,6 +86,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
         description: transaction.description,
         amount: transaction.amount,
         type: transaction.type,
+        parentCategory: transaction.parentCategory,
         category: transaction.category,
         account: transaction.account,
         date: new Date(transaction.date),
@@ -92,7 +96,8 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
             description: '',
             amount: 0,
             type: initialType || 'expense',
-            category: 'Other',
+            parentCategory: 'Personnel',
+            category: 'Autre',
             account: 'Banque',
             date: new Date(),
         });
@@ -101,10 +106,13 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
 
 
   const transactionType = form.watch('type');
+  const parentCategory = form.watch('parentCategory');
 
   const availableCategories = React.useMemo(() => {
-    return transactionType === 'income' ? IncomeCategory : ExpenseCategory;
-  }, [transactionType]);
+    if (transactionType === 'income') return IncomeCategory;
+    if (parentCategory) return ExpenseSubCategory[parentCategory];
+    return [];
+  }, [transactionType, parentCategory]);
 
   React.useEffect(() => {
     if (initialType && !isEditing) {
@@ -118,6 +126,15 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
       form.setValue('category', availableCategories[0] as Category);
     }
   }, [transactionType, availableCategories, form]);
+  
+  React.useEffect(() => {
+    if(transactionType === 'expense' && !parentCategory) {
+        form.setValue('parentCategory', 'Personnel');
+    }
+    if (transactionType === 'income') {
+        form.setValue('parentCategory', undefined);
+    }
+  }, [transactionType, parentCategory, form]);
 
   const [state, formAction] = useActionState(handleAddOrUpdateTransaction, initialState);
 
@@ -153,13 +170,22 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
     setIsSuggesting(true);
     try {
         const result = await suggestCategory(description, amount);
-        if (result?.category && availableCategories.includes(result.category as any)) {
-            form.setValue('category', result.category);
-        } else if (result?.category) {
+        if (result?.category) {
+            if (transactionType === 'income' && IncomeCategory.includes(result.category as any)) {
+                 form.setValue('category', result.category);
+            } else if (transactionType === 'expense') {
+                for (const pCat of ExpenseParentCategory) {
+                    if ((ExpenseSubCategory[pCat] as readonly string[]).includes(result.category)) {
+                        form.setValue('parentCategory', pCat);
+                        form.setValue('category', result.category as ExpenseSubCategoryType);
+                        return;
+                    }
+                }
+            }
             toast({
                 variant: 'default',
-                title: 'Suggestion ajustée',
-                description: `L'IA a suggéré "${result.category}" qui n'est pas une catégorie de ${transactionType} valide. Veuillez en sélectionner une dans la liste.`,
+                title: 'Suggestion non applicable',
+                description: `L'IA a suggéré "${result.category}" qui n'est pas une catégorie valide pour ce type de transaction.`,
             })
         }
     } catch (error) {
@@ -243,7 +269,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.watch('date') ? format(form.watch('date'), 'PPP') : <span>Choisir une date</span>}
+                    {form.watch('date') ? format(form.watch('date'), 'PPP', { locale: fr }) : <span>Choisir une date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -258,31 +284,49 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
             </div>
           </div>
           
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-                <Label>Catégorie</Label>
-                <Button variant="ghost" type="button" size="sm" onClick={handleSuggestion} disabled={isSuggesting}>
-                    {isSuggesting ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                        <Wand2 className="mr-2 h-4 w-4" />
+           <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <Label>Catégorie</Label>
+                     {transactionType === 'expense' && (
+                        <Button variant="ghost" type="button" size="sm" onClick={handleSuggestion} disabled={isSuggesting}>
+                            {isSuggesting ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                                <Wand2 className="mr-2 h-4 w-4" />
+                            )}
+                            Suggérer
+                        </Button>
+                     )}
+                </div>
+                <div className={cn("grid gap-2", transactionType === 'expense' ? 'grid-cols-2' : 'grid-cols-1')}>
+                    {transactionType === 'expense' && (
+                        <Select name="parentCategory" onValueChange={(value) => form.setValue('parentCategory', value as ExpenseParentCategoryType)} value={form.watch('parentCategory')}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Catégorie" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {ExpenseParentCategory.map((cat) => (
+                                <SelectItem key={cat} value={cat}>
+                                    {cat}
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     )}
-                    Suggérer
-                </Button>
+                    <Select name="category" onValueChange={(value) => form.setValue('category', value as Category)} value={form.watch('category')}>
+                    <SelectTrigger>
+                        <SelectValue placeholder={transactionType === 'expense' ? "Sous-catégorie" : "Catégorie"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {availableCategories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                            {cat}
+                        </SelectItem>
+                        ))}
+                    </SelectContent>
+                    </Select>
+                </div>
             </div>
-            <Select name="category" onValueChange={(value) => form.setValue('category', value as Category)} value={form.watch('category')}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner une catégorie" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableCategories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
 
           <div className="space-y-2">
             <Label>Compte</Label>

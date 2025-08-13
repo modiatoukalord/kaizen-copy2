@@ -26,7 +26,7 @@ import { CategoryBadge } from './category-badge';
 import { AddTransactionSheet } from './add-transaction-sheet';
 import { useCurrency } from '@/contexts/currency-context';
 import { DataTableFacetedFilter } from './data-table-faceted-filter';
-import { TransactionAccount, IncomeCategory, ExpenseCategory } from '@/lib/types';
+import { TransactionAccount, IncomeCategory, ExpenseSubCategory, ExpenseParentCategory } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -47,10 +47,10 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
   const { currency } = useCurrency();
 
   React.useEffect(() => {
-    if (initialGlobalFilter !== undefined) {
+    if (initialGlobalFilter !== undefined && initialGlobalFilter !== globalFilter) {
       setGlobalFilter(initialGlobalFilter);
     }
-  }, [initialGlobalFilter]);
+  }, [initialGlobalFilter, globalFilter]);
 
   const columns: ColumnDef<Transaction>[] = [
     {
@@ -76,8 +76,16 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
       },
     },
     {
-        accessorKey: 'category',
+        accessorKey: 'parentCategory',
         header: 'Catégorie',
+        cell: ({ row }) => <span>{row.original.parentCategory || 'N/A'}</span>,
+        filterFn: (row, id, value) => {
+          return value.includes(row.getValue(id));
+        },
+    },
+    {
+        accessorKey: 'category',
+        header: 'Sous-catégorie',
         cell: ({ row }) => <CategoryBadge category={row.original.category} />,
         filterFn: (row, id, value) => {
           return value.includes(row.getValue(id));
@@ -140,14 +148,18 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
     },
   });
 
-  const isFiltered = table.getState().columnFilters.length > 0 || globalFilter;
+  const isFiltered = table.getState().columnFilters.length > 0 || !!globalFilter;
+
+  const parentCategoryOptions = React.useMemo(() => {
+    return ExpenseParentCategory.map(cat => ({ label: cat, value: cat }));
+  }, []);
 
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle>Transactions</CardTitle>
         <CardDescription>Une liste de vos activités financières.</CardDescription>
-        <div className="flex items-center gap-2 py-4">
+        <div className="flex items-center gap-2 py-4 flex-wrap">
             <Input
               placeholder="Filtrer toutes les colonnes..."
               value={globalFilter ?? ''}
@@ -156,10 +168,17 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
               }
               className="max-w-sm"
             />
+            {filterType !== 'income' && table.getColumn('parentCategory') && (
+              <DataTableFacetedFilter
+                column={table.getColumn('parentCategory')}
+                title="Catégorie"
+                options={parentCategoryOptions}
+              />
+            )}
             {table.getColumn('category') && (
               <DataTableFacetedFilter
                 column={table.getColumn('category')}
-                title="Catégorie"
+                title="Sous-catégorie"
                 options={categoryOptions}
               />
             )}

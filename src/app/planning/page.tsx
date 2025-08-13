@@ -10,8 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PlusCircle, Trash2, AlertTriangle, Bell } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ExpenseCategory } from '@/lib/types';
-import type { Category, Transaction } from '@/lib/types';
+import { ExpenseSubCategory, AllExpenseSubCategories } from '@/lib/types';
+import type { Category, Transaction, ExpenseSubCategoryType } from '@/lib/types';
 import { getTransactions } from '@/lib/data';
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, getYear, isSameDay, isFuture, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -21,7 +21,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 
 type BudgetItem = {
-    category: Category;
+    category: ExpenseSubCategoryType;
     planned: number;
 };
 
@@ -122,7 +122,7 @@ export default function PlanningPage() {
     setBudgetItems(budgetItems.filter((_, i) => i !== index));
   }
   
-  const handleCategoryChange = (index: number, newCategory: Category) => {
+  const handleCategoryChange = (index: number, newCategory: ExpenseSubCategoryType) => {
     const newItems = [...budgetItems];
     newItems[index].category = newCategory;
     setBudgetItems(newItems);
@@ -208,7 +208,7 @@ export default function PlanningPage() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Catégorie</TableHead>
+                            <TableHead>Sous-catégorie</TableHead>
                             <TableHead className="text-right">Prévu</TableHead>
                             <TableHead className="text-right">Dépensé</TableHead>
                             <TableHead className="text-right">Restant</TableHead>
@@ -221,13 +221,13 @@ export default function PlanningPage() {
                                 <TableCell className="w-[200px]">
                                     <Select
                                         value={item.category}
-                                        onValueChange={(value) => handleCategoryChange(index, value as Category)}
+                                        onValueChange={(value) => handleCategoryChange(index, value as ExpenseSubCategoryType)}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Choisir une catégorie" />
+                                            <SelectValue placeholder="Choisir une sous-catégorie" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {ExpenseCategory.map((cat) => (
+                                            {AllExpenseSubCategories.map((cat) => (
                                                 <SelectItem key={cat} value={cat}>
                                                     {cat}
                                                 </SelectItem>

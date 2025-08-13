@@ -8,27 +8,42 @@ export const IncomeCategory = [
     'Créance'
 ] as const;
 
-export const ExpenseCategory = [
-  'Aide sociale',
-  'Assurances',
-  'Autre',
-  'Divertissement',
-  'Equipements maison',
-  'Factures',
-  'Investissement',
-  'Nourriture',
-  'Prêt',
-  'Remboursement',
-  'Transport',
-  'Travaux',
-  'Vacances et voyage',
-  'Vêtements et accessoires',
+export const ExpenseSubCategory = {
+  Personnel: [
+    'Aide sociale',
+    'Assurances',
+    'Autre',
+    'Divertissement',
+    'Investissement',
+    'Nourriture',
+    'Prêt',
+    'Remboursement',
+    'Vacances et voyage',
+    'Vêtements et accessoires',
+  ],
+  Maison: [
+    'Equipements maison',
+    'Factures',
+    'Travaux'
+  ],
+  Transport: [
+    'Transport'
+  ]
+} as const;
+
+export const AllExpenseSubCategories = [
+    ...ExpenseSubCategory.Personnel,
+    ...ExpenseSubCategory.Maison,
+    ...ExpenseSubCategory.Transport
 ] as const;
+
 
 export const TransactionCategory = [
   ...IncomeCategory,
-  ...ExpenseCategory
+  ...AllExpenseSubCategories
 ] as const;
+
+export const ExpenseParentCategory = Object.keys(ExpenseSubCategory) as (keyof typeof ExpenseSubCategory)[];
 
 export const TransactionAccount = [
     'Banque', 
@@ -39,7 +54,8 @@ export const TransactionAccount = [
 export type Account = (typeof TransactionAccount)[number];
 export type Category = (typeof TransactionCategory)[number];
 export type IncomeCategoryType = (typeof IncomeCategory)[number];
-export type ExpenseCategoryType = (typeof ExpenseCategory)[number];
+export type ExpenseSubCategoryType = (typeof AllExpenseSubCategories)[number];
+export type ExpenseParentCategoryType = (typeof ExpenseParentCategory)[number];
 
 
 export type Transaction = {
@@ -47,6 +63,7 @@ export type Transaction = {
   date: string; // ISO 8601 format
   description: string;
   amount: number;
+  parentCategory?: ExpenseParentCategoryType;
   category: Category;
   account: Account;
   type: 'income' | 'expense';

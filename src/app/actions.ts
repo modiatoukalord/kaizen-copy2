@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { categorizeTransaction as categorizeTransactionFlow } from '@/ai/flows/categorize-transaction';
-import { TransactionCategory, TransactionAccount, type CategorizeTransactionInput } from '@/lib/types';
+import { TransactionCategory, TransactionAccount, type CategorizeTransactionInput, ExpenseParentCategory } from '@/lib/types';
 import { addTransaction as dbAddTransaction, getTransactions, updateTransaction as dbUpdateTransaction, addTransfer as dbAddTransfer, updateTransfer as dbUpdateTransfer } from '@/lib/data';
 
 const formSchema = z.object({
@@ -11,6 +11,7 @@ const formSchema = z.object({
   description: z.string().min(1, 'La description est requise'),
   amount: z.coerce.number().min(0.01, 'Le montant doit être positif'),
   type: z.enum(['income', 'expense']),
+  parentCategory: z.enum(ExpenseParentCategory).optional(),
   category: z.enum(TransactionCategory),
   account: z.enum(TransactionAccount),
   date: z.string().min(1, 'La date est requise'),
@@ -30,7 +31,14 @@ const transferFormSchema = z.object({
 
 
 export async function handleAddOrUpdateTransaction(prevState: any, formData: FormData) {
-  const validatedFields = formSchema.safeParse(Object.fromEntries(formData.entries()));
+  const rawData = Object.fromEntries(formData.entries());
+  
+  // Handle empty optional fields
+  if (rawData.type === 'income' || !rawData.parentCategory) {
+    delete rawData.parentCategory;
+  }
+  
+  const validatedFields = formSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
     return {
