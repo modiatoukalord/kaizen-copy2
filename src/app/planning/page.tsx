@@ -42,15 +42,11 @@ export default function PlanningPage() {
   const searchParams = useSearchParams();
   const scope: Scope = (searchParams.get('scope') as Scope) || 'Personnel';
 
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([
-    { id: crypto.randomUUID(), category: 'Nourriture', planned: 200000 },
-    { id: crypto.randomUUID(), category: 'Transport', planned: 50000 },
-    { id: crypto.randomUUID(), category: 'Divertissement', planned: 75000 },
-  ]);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'MM'));
-  const [selectedYear, setSelectedYear] = useState<number>(getYear(new Date()));
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [selectedYear, setSelectedYear] = useState<number>(0);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [newEventDescription, setNewEventDescription] = useState('');
   const [newEventAmount, setNewEventAmount] = useState<number | ''>('');
@@ -62,6 +58,17 @@ export default function PlanningPage() {
       setTransactions(allTransactions);
     };
     fetchTransactions();
+    
+    // Initialize state that depends on browser APIs here
+    setSelectedDate(new Date());
+    setSelectedMonth(format(new Date(), 'MM'));
+    setSelectedYear(getYear(new Date()));
+    setBudgetItems([
+      { id: crypto.randomUUID(), category: 'Nourriture', planned: 200000 },
+      { id: crypto.randomUUID(), category: 'Transport', planned: 50000 },
+      { id: crypto.randomUUID(), category: 'Divertissement', planned: 75000 },
+    ]);
+
   }, []);
   
   const handleTabChange = (value: string) => {

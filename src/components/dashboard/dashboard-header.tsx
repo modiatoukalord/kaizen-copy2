@@ -42,11 +42,7 @@ export default function DashboardHeader() {
   const searchParams = useSearchParams();
   const { currency, setCurrency } = useCurrency();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([
-    { category: 'Nourriture', planned: 200000 },
-    { category: 'Transport', planned: 50000 },
-    { category: 'Divertissement', planned: 75000 },
-  ]);
+  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
    const [events, setEvents] = useState<CalendarEvent[]>([]);
 
    const scope: Scope = (searchParams.get('scope') as Scope) || 'Personnel';
@@ -58,6 +54,13 @@ export default function DashboardHeader() {
       setTransactions(allTransactions);
     };
     fetchTransactions();
+    
+    // Initialize state that depends on browser APIs here
+    setBudgetItems([
+        { category: 'Nourriture', planned: 200000 },
+        { category: 'Transport', planned: 50000 },
+        { category: 'Divertissement', planned: 75000 },
+    ]);
   }, []);
 
   const monthlyTransactions = useMemo(() => {
