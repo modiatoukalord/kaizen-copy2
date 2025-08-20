@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useMemo, useTransition } from 'react';
+import React, { useState, useEffect, useMemo, useTransition, useActionState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,6 @@ import { fr } from 'date-fns/locale';
 import { useCurrency } from '@/contexts/currency-context';
 import { formatCurrency } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useFormState } from 'react-dom';
 import { toast } from '@/hooks/use-toast';
 
 const initialAddEventState = {
@@ -33,16 +32,17 @@ export default function PlanningPage() {
   const { currency } = useCurrency();
   const [isPending, startTransition] = useTransition();
 
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'MM'));
   const [selectedYear, setSelectedYear] = useState<number>(getYear(new Date()));
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
-  const [addEventState, addEventFormAction] = useFormState(handleAddCalendarEvent, initialAddEventState);
+  const [addEventState, addEventFormAction] = useActionState(handleAddCalendarEvent, initialAddEventState);
 
   useEffect(() => {
+    setSelectedDate(new Date());
     const fetchAndSetTransactions = async () => {
       const allTransactions = await getTransactions();
       setTransactions(allTransactions);
