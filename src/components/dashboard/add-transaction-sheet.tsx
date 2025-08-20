@@ -61,9 +61,10 @@ const initialState = {
 export function AddTransactionSheet({ children, type: initialType, transaction }: { children: React.ReactNode, type?: 'income' | 'expense', transaction?: Transaction }) {
   const [open, setOpen] = React.useState(false);
   const [isSuggesting, setIsSuggesting] = React.useState(false);
-  const formRef = React.useRef<HTMLFormElement>(null);
   
   const isEditing = !!transaction;
+  
+  const [state, formAction, isPending] = useActionState(handleAddOrUpdateTransaction, initialState);
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
@@ -135,8 +136,6 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
         form.setValue('parentCategory', undefined);
     }
   }, [transactionType, parentCategory, form]);
-
-  const [state, formAction] = useActionState(handleAddOrUpdateTransaction, initialState);
 
   React.useEffect(() => {
     if (state.success) {
@@ -211,32 +210,21 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
           </SheetDescription>
         </SheetHeader>
         <form
-          ref={formRef}
           action={formAction}
           className="space-y-4 py-4"
-          onSubmit={(evt) => {
-            evt.preventDefault();
-            form.handleSubmit(() => {
-                const formData = new FormData(formRef.current!);
-                const values = form.getValues();
-                if (values.id) {
-                    formData.set('id', values.id);
-                }
-                formData.set('date', values.date.toISOString());
-                formAction(formData);
-            })(evt);
-          }}
         >
-          {isEditing && <input type="hidden" name="id" value={transaction.id} />}
+          <input type="hidden" {...form.register('id')} />
+          <input type="hidden" {...form.register('date')} value={form.watch('date').toISOString()} />
+
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
-            <Input id="description" name="description" {...form.register('description')} />
+            <Input id="description" {...form.register('description')} />
             {state.errors?.description && <p className="text-sm text-destructive">{state.errors.description[0]}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="amount">Montant</Label>
-            <Input id="amount" name="amount" type="number" step="0.01" {...form.register('amount')} />
+            <Input id="amount" type="number" step="0.01" {...form.register('amount')} />
             {state.errors?.amount && <p className="text-sm text-destructive">{state.errors.amount[0]}</p>}
           </div>
 
@@ -255,7 +243,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
                 </Select>
               </div>
             )}
-             {(isEditing || initialType) && <input type="hidden" name="type" value={form.getValues('type')} />}
+             {(isEditing || initialType) && <input type="hidden" {...form.register('type')} />}
             <div className={cn("space-y-2", (!initialType && !isEditing) ? "" : "col-span-2")}>
               <Label>Date</Label>
               <Popover>
@@ -299,7 +287,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
                 </div>
                 <div className={cn("grid gap-2", transactionType === 'expense' ? 'grid-cols-2' : 'grid-cols-1')}>
                     {transactionType === 'expense' && (
-                        <Select name="parentCategory" onValueChange={(value) => form.setValue('parentCategory', value as ExpenseParentCategoryType)} value={form.watch('parentCategory')}>
+                        <Select {...form.register('parentCategory')} onValueChange={(value) => form.setValue('parentCategory', value as ExpenseParentCategoryType)} value={form.watch('parentCategory')}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Catégorie" />
                             </SelectTrigger>
@@ -312,7 +300,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
                             </SelectContent>
                         </Select>
                     )}
-                    <Select name="category" onValueChange={(value) => form.setValue('category', value as Category)} value={form.watch('category')}>
+                    <Select {...form.register('category')} onValueChange={(value) => form.setValue('category', value as Category)} value={form.watch('category')}>
                     <SelectTrigger>
                         <SelectValue placeholder={transactionType === 'expense' ? "Sous-catégorie" : "Catégorie"} />
                     </SelectTrigger>
@@ -329,7 +317,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
 
           <div className="space-y-2">
             <Label>Compte</Label>
-            <Select name="account" onValueChange={(value) => form.setValue('account', value as Account)} value={form.watch('account')}>
+            <Select {...form.register('account')} onValueChange={(value) => form.setValue('account', value as Account)} value={form.watch('account')}>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un compte" />
               </SelectTrigger>
@@ -344,8 +332,8 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
           </div>
 
           <SheetFooter>
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" disabled={isPending}>
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isEditing ? 'Enregistrer les modifications' : 'Enregistrer la transaction'}
             </Button>
           </SheetFooter>

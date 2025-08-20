@@ -61,9 +61,9 @@ const initialState = {
 
 export function AddTransferSheet({ children, transfer }: { children: React.ReactNode, transfer?: Transfer }) {
   const [open, setOpen] = React.useState(false);
-  const formRef = React.useRef<HTMLFormElement>(null);
-  
   const isEditing = !!transfer;
+  
+  const [state, formAction, isPending] = useActionState(handleAddOrUpdateTransfer, initialState);
 
   const form = useForm<TransferFormValues>({
     resolver: zodResolver(transferFormSchema),
@@ -98,8 +98,6 @@ export function AddTransferSheet({ children, transfer }: { children: React.React
     }
   }, [transfer, form, open]);
 
-
-  const [state, formAction] = useActionState(handleAddOrUpdateTransfer, initialState);
 
   React.useEffect(() => {
     if (state.success) {
@@ -142,32 +140,20 @@ export function AddTransferSheet({ children, transfer }: { children: React.React
           </SheetDescription>
         </SheetHeader>
         <form
-          ref={formRef}
           action={formAction}
           className="space-y-4 py-4"
-          onSubmit={(evt) => {
-            evt.preventDefault();
-            form.handleSubmit(() => {
-                const formData = new FormData(formRef.current!);
-                const values = form.getValues();
-                if (values.id) {
-                    formData.set('id', values.id);
-                }
-                formData.set('date', values.date.toISOString());
-                formAction(formData);
-            })(evt);
-          }}
         >
-          {isEditing && <input type="hidden" name="id" value={transfer.id} />}
+          <input type="hidden" {...form.register('id')} />
+          <input type="hidden" {...form.register('date')} value={form.watch('date').toISOString()} />
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
-            <Input id="description" name="description" {...form.register('description')} />
+            <Input id="description" {...form.register('description')} />
             {state.errors?.description && <p className="text-sm text-destructive">{state.errors.description[0]}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="amount">Montant</Label>
-            <Input id="amount" name="amount" type="number" step="0.01" {...form.register('amount')} />
+            <Input id="amount" type="number" step="0.01" {...form.register('amount')} />
             {state.errors?.amount && <p className="text-sm text-destructive">{state.errors.amount[0]}</p>}
           </div>
           
@@ -200,7 +186,7 @@ export function AddTransferSheet({ children, transfer }: { children: React.React
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>De</Label>
-              <Select name="fromAccount" onValueChange={(value) => form.setValue('fromAccount', value as Account)} value={form.watch('fromAccount')}>
+              <Select {...form.register('fromAccount')} onValueChange={(value) => form.setValue('fromAccount', value as Account)} value={form.watch('fromAccount')}>
                 <SelectTrigger>
                   <SelectValue placeholder="Compte source" />
                 </SelectTrigger>
@@ -215,7 +201,7 @@ export function AddTransferSheet({ children, transfer }: { children: React.React
             </div>
              <div className="space-y-2">
               <Label>À</Label>
-              <Select name="toAccount" onValueChange={(value) => form.setValue('toAccount', value as Account)} value={form.watch('toAccount')}>
+              <Select {...form.register('toAccount')} onValueChange={(value) => form.setValue('toAccount', value as Account)} value={form.watch('toAccount')}>
                 <SelectTrigger>
                   <SelectValue placeholder="Compte destination" />
                 </SelectTrigger>
@@ -233,8 +219,8 @@ export function AddTransferSheet({ children, transfer }: { children: React.React
 
 
           <SheetFooter>
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" disabled={isPending}>
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isEditing ? 'Enregistrer les modifications' : 'Enregistrer le virement'}
             </Button>
           </SheetFooter>
