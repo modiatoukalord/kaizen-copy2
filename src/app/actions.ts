@@ -52,19 +52,20 @@ export async function handleAddOrUpdateTransaction(prevState: any, formData: For
 
   try {
     if (id) {
-        await dbUpdateTransaction({ id, ...transactionData });
+        await dbUpdateTransaction({ id, ...transactionData, date: new Date(transactionData.date).toISOString() });
         revalidatePath('/');
         revalidatePath('/income');
         revalidatePath('/expenses');
         return { message: 'Transaction mise à jour avec succès.', errors: {}, success: true };
     } else {
-        await dbAddTransaction(transactionData);
+        await dbAddTransaction({...transactionData, date: new Date(transactionData.date).toISOString()});
         revalidatePath('/');
         revalidatePath('/income');
         revalidatePath('/expenses');
         return { message: 'Transaction ajoutée avec succès.', errors: {}, success: true };
     }
   } catch (error) {
+    console.error(error);
     return { message: 'Erreur de base de données: Échec de l\'enregistrement de la transaction.', errors: {}, success: false };
   }
 }
@@ -96,15 +97,16 @@ export async function handleAddOrUpdateTransfer(prevState: any, formData: FormDa
 
   try {
     if (id) {
-        await dbUpdateTransfer({ id, ...transferData });
+        await dbUpdateTransfer({ id, ...transferData, date: new Date(transferData.date).toISOString() });
         revalidatePath('/transfers');
         return { message: 'Virement mis à jour avec succès.', errors: {}, success: true };
     } else {
-        await dbAddTransfer(transferData);
+        await dbAddTransfer({...transferData, date: new Date(transferData.date).toISOString()});
         revalidatePath('/transfers');
         return { message: 'Virement ajouté avec succès.', errors: {}, success: true };
     }
   } catch (error) {
+    console.error(error);
     return { message: 'Erreur de base de données: Échec de l\'enregistrement du virement.', errors: {}, success: false };
   }
 }

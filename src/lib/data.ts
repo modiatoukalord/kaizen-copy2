@@ -1,82 +1,87 @@
 
+import { db } from './firebase';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, Timestamp } from 'firebase/firestore';
 import type { Transaction, Transfer } from './types';
 
-// Using a global variable to simulate a database in this example.
 // In a real application, you would use a proper database.
-if (!global.transactions) {
-  global.transactions = [
-    { id: '1', date: new Date(new Date().setDate(1)).toISOString(), description: 'Salaire mensuel', amount: 3000000, category: 'Salaire', type: 'income', account: 'Banque' },
-    { id: '2', date: new Date(new Date().setDate(1)).toISOString(), description: 'Loyer de l\'appartement', amount: 900000, category: 'Autre', parentCategory: 'Personnel', type: 'expense', account: 'Banque' },
-    { id: '3', date: new Date(new Date().setDate(3)).toISOString(), description: 'Achats d\'épicerie', amount: 150000, category: 'Nourriture', parentCategory: 'Personnel', type: 'expense', account: 'Mobile money' },
-    { id: '4', date: new Date(new Date().setDate(5)).toISOString(), description: 'Facture d\'électricité', amount: 50000, category: 'Factures', parentCategory: 'Maison', type: 'expense', account: 'Banque' },
-    { id: '5', date: new Date(new Date().setDate(10)).toISOString(), description: 'Dîner entre amis', amount: 75000, category: 'Divertissement', parentCategory: 'Personnel', type: 'expense', account: 'Espèces' },
-    { id: '6', date: new Date(new Date().setDate(12)).toISOString(), description: 'Essence pour la voiture', amount: 35000, category: 'Transport', parentCategory: 'Transport', type: 'expense', account: 'Mobile money' },
-    { id: '7', date: new Date(new Date().setDate(15)).toISOString(), description: 'Nouveaux écouteurs', amount: 120000, category: 'Autre', parentCategory: 'Personnel', type: 'expense', account: 'Banque' },
-    { id: '8', date: new Date(new Date().setDate(20)).toISOString(), description: 'Billets de cinéma', amount: 20000, category: 'Divertissement', parentCategory: 'Personnel', type: 'expense', account: 'Espèces' },
-    { id: '10', date: new Date(new Date().setDate(15)).toISOString(), description: 'Cadeau d\'anniversaire', amount: 60000, category: 'Don', type: 'income', account: 'Espèces' },
-    { id: '11', date: new Date(new Date().setDate(18)).toISOString(), description: 'Aide sociale du gouvernement', amount: 100000, category: 'Aide sociale', parentCategory: 'Personnel', type: 'expense', account: 'Banque' },
-  ] as Transaction[];
-}
-
-if (!global.transfers) {
-    global.transfers = [
-        { id: 't1', date: new Date(new Date().setDate(2)).toISOString(), description: 'Transfert pour les courses', amount: 50000, fromAccount: 'Banque', toAccount: 'Espèces' },
-        { id: 't2', date: new Date(new Date().setDate(16)).toISOString(), description: 'Paiement mobile', amount: 25000, fromAccount: 'Banque', toAccount: 'Mobile money' },
-    ] as Transfer[];
-}
 
 export const getTransactions = async (): Promise<Transaction[]> => {
-  return Promise.resolve(global.transactions);
+  const transactionsCol = collection(db, 'transactions');
+  const q = query(transactionsCol, orderBy('date', 'desc'));
+  const transactionSnapshot = await getDocs(q);
+  const transactionList = transactionSnapshot.docs.map(doc => {
+    const data = doc.data();
+    return { 
+        id: doc.id, 
+        ...data,
+        // Convert Firestore Timestamp to ISO string
+        date: (data.date as Timestamp).toDate().toISOString(),
+    } as Transaction;
+  });
+  return transactionList;
 };
 
 export const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
-  const newTransaction: Transaction = { id: crypto.randomUUID(), ...transaction };
-  global.transactions.unshift(newTransaction);
-  return Promise.resolve(newTransaction);
+  const transactionsCol = collection(db, 'transactions');
+  // Convert date string back to Firestore Timestamp
+  const docRef = await addDoc(transactionsCol, {
+    ...transaction,
+    date: new Date(transaction.date)
+  });
+  const newTransaction = { id: docRef.id, ...transaction };
+  return newTransaction;
 };
 
 export const updateTransaction = async (transaction: Transaction) => {
-    const index = global.transactions.findIndex(t => t.id === transaction.id);
-    if (index !== -1) {
-        global.transactions[index] = transaction;
-        return Promise.resolve(transaction);
-    }
-    throw new Error('Transaction not found');
+    const transactionDoc = doc(db, 'transactions', transaction.id);
+    const { id, ...transactionData } = transaction;
+    await updateDoc(transactionDoc, {
+        ...transactionData,
+        date: new Date(transactionData.date)
+    });
+    return transaction;
 };
 
 export const deleteTransaction = async (id: string) => {
-    const index = global.transactions.findIndex(t => t.id === id);
-    if (index !== -1) {
-        global.transactions.splice(index, 1);
-        return Promise.resolve();
-    }
-    throw new Error('Transaction not found');
+    const transactionDoc = doc(db, 'transactions', id);
+    await deleteDoc(transactionDoc);
 }
 
 export const getTransfers = async (): Promise<Transfer[]> => {
-    return Promise.resolve(global.transfers);
+    const transfersCol = collection(db, 'transfers');
+    const q = query(transfersCol, orderBy('date', 'desc'));
+    const transferSnapshot = await getDocs(q);
+    const transferList = transferSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            date: (data.date as Timestamp).toDate().toISOString(),
+        } as Transfer;
+    });
+    return transferList;
 };
 
 export const addTransfer = async (transfer: Omit<Transfer, 'id'>) => {
-    const newTransfer: Transfer = { id: crypto.randomUUID(), ...transfer };
-    global.transfers.unshift(newTransfer);
-    return Promise.resolve(newTransfer);
+    const transfersCol = collection(db, 'transfers');
+    const docRef = await addDoc(transfersCol, {
+        ...transfer,
+        date: new Date(transfer.date)
+    });
+    return { id: docRef.id, ...transfer };
 };
 
 export const updateTransfer = async (transfer: Transfer) => {
-    const index = global.transfers.findIndex(t => t.id === transfer.id);
-    if (index !== -1) {
-        global.transfers[index] = transfer;
-        return Promise.resolve(transfer);
-    }
-    throw new Error('Transfer not found');
+    const transferDoc = doc(db, 'transfers', transfer.id);
+    const { id, ...transferData } = transfer;
+    await updateDoc(transferDoc, {
+        ...transferData,
+        date: new Date(transferData.date)
+    });
+    return transfer;
 };
 
 export const deleteTransfer = async (id: string) => {
-    const index = global.transfers.findIndex(t => t.id === id);
-    if (index !== -1) {
-        global.transfers.splice(index, 1);
-        return Promise.resolve();
-    }
-    throw new Error('Transfer not found');
+    const transferDoc = doc(db, 'transfers', id);
+    await deleteDoc(transferDoc);
 }
