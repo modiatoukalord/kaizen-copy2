@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { PiggyBank, PlusCircle, ArrowRightLeft } from 'lucide-react';
+import { PiggyBank, PlusCircle, ArrowRightLeft, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AddTransactionSheet } from './add-transaction-sheet';
 import { AddTransferSheet } from './add-transfer-sheet';
@@ -16,10 +16,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCurrency } from '@/contexts/currency-context';
+import { Sheet, SheetTrigger, SheetContent, SheetClose } from '@/components/ui/sheet';
+import { useState } from 'react';
 
 export default function DashboardHeader() {
   const pathname = usePathname();
   const { currency, setCurrency } = useCurrency();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const navItems = [
     { href: '/', label: 'Tableau de bord' },
@@ -66,35 +69,90 @@ export default function DashboardHeader() {
         })}
       </nav>
 
-      <div className="flex items-center justify-end gap-4 md:gap-2 lg:gap-4">
-        <Select value={currency} onValueChange={setCurrency}>
-            <SelectTrigger className="w-[100px]">
-                <SelectValue placeholder="Devise" />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="USD">USD</SelectItem>
-                <SelectItem value="EUR">EUR</SelectItem>
-                <SelectItem value="XOF">FCFA</SelectItem>
-            </SelectContent>
-        </Select>
-        {!isPlanningPage && (
-          isTransfersPage ? (
-              <AddTransferSheet>
-                  <Button>
-                      <ArrowRightLeft className="mr-2 h-4 w-4" />
-                      Nouveau virement
-                  </Button>
-              </AddTransferSheet>
-          ) : (
-              <AddTransactionSheet type={transactionType}>
-                  <Button>
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Ajouter une transaction
-                  </Button>
-              </AddTransactionSheet>
-          )
-        )}
-      </div>
+        <div className="flex items-center gap-2">
+            <Select value={currency} onValueChange={setCurrency}>
+                <SelectTrigger className="w-[100px]">
+                    <SelectValue placeholder="Devise" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="EUR">EUR</SelectItem>
+                    <SelectItem value="XOF">FCFA</SelectItem>
+                </SelectContent>
+            </Select>
+
+            <div className="hidden md:flex items-center gap-2">
+                 {!isPlanningPage && (
+                  isTransfersPage ? (
+                      <AddTransferSheet>
+                          <Button>
+                              <ArrowRightLeft className="mr-2 h-4 w-4" />
+                              Nouveau virement
+                          </Button>
+                      </AddTransferSheet>
+                  ) : (
+                      <AddTransactionSheet type={transactionType}>
+                          <Button>
+                              <PlusCircle className="mr-2 h-4 w-4" />
+                              Ajouter une transaction
+                          </Button>
+                      </AddTransactionSheet>
+                  )
+                )}
+            </div>
+
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                <SheetTrigger asChild>
+                    <Button variant="outline" size="icon" className="md:hidden">
+                        <Menu className="h-6 w-6" />
+                        <span className="sr-only">Ouvrir le menu de navigation</span>
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="left">
+                    <nav className="grid gap-6 text-lg font-medium">
+                        <Link href="/" className="flex items-center gap-2 text-lg font-semibold" onClick={() => setIsSheetOpen(false)}>
+                            <PiggyBank className="h-6 w-6 text-primary" />
+                            <span className="font-headline">Le KAIZEN</span>
+                        </Link>
+                        {navItems.map((item) => {
+                             const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+                             return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    onClick={() => setIsSheetOpen(false)}
+                                    className={cn(
+                                        'transition-colors hover:text-foreground',
+                                        isActive ? 'text-foreground' : 'text-muted-foreground'
+                                    )}
+                                >
+                                    {item.label}
+                                </Link>
+                             )
+                        })}
+                         <div className="mt-4">
+                             {!isPlanningPage && (
+                                isTransfersPage ? (
+                                    <AddTransferSheet>
+                                        <Button className="w-full">
+                                            <ArrowRightLeft className="mr-2 h-4 w-4" />
+                                            Nouveau virement
+                                        </Button>
+                                    </AddTransferSheet>
+                                ) : (
+                                    <AddTransactionSheet type={transactionType}>
+                                        <Button className="w-full">
+                                            <PlusCircle className="mr-2 h-4 w-4" />
+                                            Ajouter une transaction
+                                        </Button>
+                                    </AddTransactionSheet>
+                                )
+                                )}
+                         </div>
+                    </nav>
+                </SheetContent>
+            </Sheet>
+        </div>
     </header>
   );
 }
