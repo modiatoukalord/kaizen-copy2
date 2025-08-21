@@ -80,6 +80,7 @@ export default function Dashboard({ initialTransactions, initialTransfers = [], 
     } else if (filterType === 'expense') {
       categories = AllExpenseSubCategories;
     } else {
+      // For the main dashboard, show all categories
       categories = [...IncomeCategory, ...AllExpenseSubCategories];
     }
     return categories.map(cat => ({ label: cat, value: cat }));
