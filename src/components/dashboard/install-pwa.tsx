@@ -26,9 +26,7 @@ const InstallPWA = () => {
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (event: BeforeInstallPromptEvent) => {
-      // Prevent the mini-infobar from appearing on mobile
       event.preventDefault();
-      // Stash the event so it can be triggered later.
       setInstallPrompt(event);
     };
 
@@ -43,9 +41,7 @@ const InstallPWA = () => {
     if (!installPrompt) {
       return;
     }
-    // Show the install prompt
     await installPrompt.prompt();
-    // Wait for the user to respond to the prompt
     const { outcome } = await installPrompt.userChoice;
     // We've used the prompt, and can't use it again, so clear it.
     setInstallPrompt(null);
