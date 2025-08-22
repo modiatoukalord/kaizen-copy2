@@ -94,7 +94,7 @@ export default function StatCards({ transactions, transfers, filterType }: StatC
     }
 
     return (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             <StatCard title="Solde net" value={balance} icon={DollarSign} tooltipText="Différence entre vos revenus et vos dépenses (Revenus - Dépenses)." />
              {Object.entries(accountBalances).map(([account, balance]) => (
                 <StatCard key={account} title={`Solde ${account}`} value={balance} icon={accountIcons[account as keyof typeof accountIcons]} tooltipText={`Solde actuel pour le compte ${account}.`}/>
