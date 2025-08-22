@@ -68,7 +68,7 @@ export default function TransfersDashboard({ initialTransfers }: TransfersDashbo
     });
   }
 
-  const columns: ColumnDef<Transfer>[] = [
+  const columns: ColumnDef<Transfer>[] = React.useMemo(() => [
     {
       accessorKey: 'date',
       header: ({ column }) => (
@@ -165,7 +165,7 @@ export default function TransfersDashboard({ initialTransfers }: TransfersDashbo
             )
         }
     }
-  ];
+  ], [currency, isPending, onDelete]);
 
   const table = useReactTable({
     data: transfers,
@@ -215,36 +215,38 @@ export default function TransfersDashboard({ initialTransfers }: TransfersDashbo
           <CardDescription>Une liste de tous vos virements de compte à compte.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id} className="px-2 md:px-4">
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
+          <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead key={header.id} className="px-2 md:px-4">
+                          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                        </TableHead>
+                      ))}
+                    </TableRow>
                   ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="px-2 md:px-4">{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
-                    Aucun virement trouvé.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow key={row.id}>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id} className="px-2 md:px-4">{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={columns.length} className="h-24 text-center">
+                        Aucun virement trouvé.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+          </div>
         </CardContent>
       </Card>
     </div>
