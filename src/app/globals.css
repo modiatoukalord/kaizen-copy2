@@ -65,5 +65,9 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image: url('https://placehold.co/1920x1080/e8eaf6/424242.png?text=');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
   }
 }
