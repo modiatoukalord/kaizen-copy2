@@ -9,6 +9,7 @@ import MobileNav from '@/components/dashboard/mobile-nav';
 export const metadata: Metadata = {
   title: 'Le KAIZEN',
   description: 'A personal finance dashboard to track income and expenses.',
+  manifest: '/manifest.webmanifest',
 };
 
 export default function RootLayout({
@@ -25,6 +26,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        <meta name="theme-color" content="#E8EAF6" />
       </head>
       <body className="font-body antialiased">
         <CurrencyProvider>
