@@ -95,7 +95,8 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
           ),
           cell: ({ row }) => (
             <>
-              {format(parseISO(row.getValue('date')), 'dd/MM/yyyy', { locale: fr })}
+              <span className="md:hidden">{format(parseISO(row.getValue('date')), 'dd/MM/yy')}</span>
+              <span className="hidden md:inline">{format(parseISO(row.getValue('date')), 'dd/MM/yyyy', { locale: fr })}</span>
             </>
           ),
         },
@@ -105,8 +106,8 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
         },
         {
           accessorKey: 'account',
-          header: 'Compte',
-          cell: ({ row }) => <span>{row.original.account}</span>,
+          header: () => <div className="hidden md:table-cell">Compte</div>,
+          cell: ({ row }) => <div className="hidden md:table-cell">{row.original.account}</div>,
           filterFn: (row, id, value) => {
             return value.includes(row.getValue(id));
           },
@@ -117,8 +118,8 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
         baseColumns.push(
             {
                 accessorKey: 'parentCategory',
-                header: 'Catégorie',
-                cell: ({ row }) => <span>{row.original.parentCategory || 'N/A'}</span>,
+                header: () => <div className="hidden md:table-cell">Catégorie</div>,
+                cell: ({ row }) => <div className="hidden md:table-cell">{row.original.parentCategory || 'N/A'}</div>,
                 filterFn: (row, id, value) => {
                   return value.includes(row.getValue(id));
                 },
@@ -238,11 +239,20 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
       sorting,
       columnFilters,
       globalFilter,
+      columnVisibility: {
+        account: false,
+        parentCategory: filterType === 'expense'
+      }
     },
     initialState: {
         columnVisibility: {
             parentCategory: filterType === 'expense',
         }
+    },
+    onColumnVisibilityChange: (updater) => {
+      if (typeof updater === 'function') {
+        // no-op to avoid state change
+      }
     }
   });
 
@@ -255,38 +265,40 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
         
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto">
-        <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                      </TableHead>
-                    ))}
-                  </TableRow>
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id} className={cn(
+                      (header.id === 'account' || header.id === 'parentCategory') && 'hidden md:table-cell'
+                  )}>
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
                 ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                      Aucun résultat.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-        </div>
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className={cn(
+                        (cell.column.id === 'account' || cell.column.id === 'parentCategory') && 'hidden md:table-cell'
+                    )}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  Aucun résultat.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   );
