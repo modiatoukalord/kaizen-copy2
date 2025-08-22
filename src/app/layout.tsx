@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -25,11 +26,11 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased">
+      <body className="font-body antialiased bg-muted/20">
         <CurrencyProvider>
           <div className="flex min-h-screen w-full flex-col">
               <DashboardHeader />
-              <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
+              <main className="flex-1 pb-24 md:pb-8">
                   {children}
               </main>
           </div>

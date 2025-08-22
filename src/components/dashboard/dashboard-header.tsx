@@ -16,7 +16,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCurrency } from '@/contexts/currency-context';
-import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { useState } from 'react';
 
 export default function DashboardHeader() {
@@ -32,6 +31,8 @@ export default function DashboardHeader() {
     { href: '/charts', label: 'Graphiques' },
     { href: '/planning', label: 'Planning' },
   ];
+  
+  const showNav = pathname !== '/';
 
   const transactionType = (() => {
     if (pathname === '/income') return 'income';
@@ -51,23 +52,25 @@ export default function DashboardHeader() {
         </Link>
       </div>
 
-      <nav className="hidden flex-col items-center justify-center gap-6 text-lg font-medium md:flex md:flex-row md:gap-2 lg:gap-4">
-        {navItems.map((item) => {
-            const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
-            return (
-                <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                    'transition-colors hover:text-foreground rounded-md px-3 py-2 text-sm font-medium',
-                    isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground'
-                )}
-                >
-                {item.label}
-                </Link>
-            );
-        })}
-      </nav>
+      {showNav && (
+        <nav className="hidden flex-col items-center justify-center gap-6 text-lg font-medium md:flex md:flex-row md:gap-2 lg:gap-4">
+            {navItems.map((item) => {
+                const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+                return (
+                    <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                        'transition-colors hover:text-foreground rounded-md px-3 py-2 text-sm font-medium',
+                        isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground'
+                    )}
+                    >
+                    {item.label}
+                    </Link>
+                );
+            })}
+        </nav>
+      )}
 
         <div className="flex items-center gap-2">
             <Select value={currency} onValueChange={setCurrency}>
