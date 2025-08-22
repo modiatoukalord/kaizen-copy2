@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import Image from 'next/image';
 
 // Extend the Window interface to include the onbeforeinstallprompt event
 declare global {
@@ -62,7 +62,7 @@ const InstallPWA = () => {
       onClick={handleInstallClick}
       title="Installer l'application"
     >
-      <Download className="h-4 w-4" />
+      <Image src="/images/icons/logo.png" alt="Installer l'application" width={24} height={24} className="h-6 w-6" />
       <span className="sr-only">Installer l'application</span>
     </Button>
   );
