@@ -58,12 +58,12 @@ export default async function Home() {
                 <CardHeader>
                     <CardTitle>Activité Récente</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex items-center justify-center">
                     <Dialog>
                     <DialogTrigger asChild>
-                        <Button>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Voir l'activité
+                        <Button variant="outline" className="h-28 w-full flex-col gap-2 bg-background/75 hover:bg-accent/20 backdrop-blur-sm">
+                            <Eye className="h-12 w-12" />
+                            <span>Voir l'activité</span>
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
