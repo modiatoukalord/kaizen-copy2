@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import DashboardHeader from '@/components/dashboard/dashboard-header';
 import { CurrencyProvider } from '@/contexts/currency-context';
+import MobileNav from '@/components/dashboard/mobile-nav';
 
 export const metadata: Metadata = {
   title: 'Le KAIZEN',
@@ -28,9 +29,10 @@ export default function RootLayout({
         <CurrencyProvider>
           <div className="flex min-h-screen w-full flex-col">
               <DashboardHeader />
-              <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+              <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8 pb-24 md:pb-8">
                   {children}
               </main>
+              <MobileNav />
           </div>
           <Toaster />
         </CurrencyProvider>

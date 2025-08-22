@@ -100,65 +100,8 @@ export default function DashboardHeader() {
                   )
                 )}
             </div>
-
-            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                <SheetTrigger asChild>
-                    <Button variant="outline" size="icon" className="md:hidden">
-                        <Menu className="h-6 w-6" />
-                        <span className="sr-only">Ouvrir le menu de navigation</span>
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="left">
-                    <SheetHeader>
-                        <SheetTitle>
-                            <Link href="/" className="flex items-center gap-2 text-lg font-semibold" onClick={() => setIsSheetOpen(false)}>
-                                <PiggyBank className="h-6 w-6 text-primary" />
-                                <span className="font-headline">Le KAIZEN</span>
-                            </Link>
-                        </SheetTitle>
-                        <SheetDescription>
-                            Navigation principale
-                        </SheetDescription>
-                    </SheetHeader>
-                    <nav className="grid gap-6 text-lg font-medium mt-4">
-                        {navItems.map((item) => {
-                             const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
-                             return (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    onClick={() => setIsSheetOpen(false)}
-                                    className={cn(
-                                        'transition-colors hover:text-foreground',
-                                        isActive ? 'text-foreground' : 'text-muted-foreground'
-                                    )}
-                                >
-                                    {item.label}
-                                </Link>
-                             )
-                        })}
-                         <div className="mt-4">
-                             {!isPlanningPage && (
-                                isTransfersPage ? (
-                                    <AddTransferSheet>
-                                        <Button className="w-full">
-                                            <ArrowRightLeft className="mr-2 h-4 w-4" />
-                                            Nouveau virement
-                                        </Button>
-                                    </AddTransferSheet>
-                                ) : (
-                                    <AddTransactionSheet type={transactionType}>
-                                        <Button className="w-full">
-                                            <PlusCircle className="mr-2 h-4 w-4" />
-                                            Ajouter une transaction
-                                        </Button>
-                                    </AddTransactionSheet>
-                                )
-                                )}
-                         </div>
-                    </nav>
-                </SheetContent>
-            </Sheet>
+            
+            {/* The mobile navigation is now handled by MobileNav component, so we remove the Sheet here */}
         </div>
     </header>
   );
