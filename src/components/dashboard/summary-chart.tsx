@@ -119,7 +119,7 @@ export default function SummaryChart({ transactions, period }: SummaryChartProps
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
-              <YAxis tickFormatter={(value) => formatCurrency(value as number, currency).replace(/\.00$/, '')} />
+              <YAxis tickFormatter={(value) => formatCurrency(value as number, currency, true)} />
               <Tooltip
                 content={<ChartTooltipContent
                     formatter={(value, name) => {

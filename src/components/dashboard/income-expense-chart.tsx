@@ -33,7 +33,7 @@ export default function IncomeExpenseChart({ transactions }: IncomeExpenseChartP
           <BarChart data={chartData} accessibilityLayer>
             <CartesianGrid vertical={false} />
             <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} />
-            <YAxis tickFormatter={(value) => formatCurrency(value as number, currency).replace(/\.00$/, '')} />
+            <YAxis tickFormatter={(value) => formatCurrency(value as number, currency, true)} />
             <Tooltip
               cursor={{ fill: 'hsl(var(--muted))' }}
               content={<ChartTooltipContent formatter={(value, name) => `${name}: ${formatCurrency(value as number, currency)}`} />}

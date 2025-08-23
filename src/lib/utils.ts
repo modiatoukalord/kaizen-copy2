@@ -12,7 +12,7 @@ const exchangeRates: Record<string, number> = {
 };
 
 
-export function formatCurrency(amount: number, currency: string = 'XOF') {
+export function formatCurrency(amount: number, currency: string = 'XOF', compact = false) {
   const amountInXOF = amount; // Assuming stored amounts are in XOF
 
   const convertedAmount = amountInXOF / exchangeRates[currency];
@@ -22,6 +22,11 @@ export function formatCurrency(amount: number, currency: string = 'XOF') {
     currency,
     minimumFractionDigits: 2,
   };
+  
+  if (compact) {
+    options.notation = 'compact';
+    options.maximumFractionDigits = 1;
+  }
 
   if (currency === 'XOF') {
     options.currencyDisplay = 'code';
