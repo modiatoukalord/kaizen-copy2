@@ -36,12 +36,12 @@ export function DataTableToolbar<TData>({
     <div className="flex items-center justify-between py-4">
       <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="Filtrer les transactions..."
+          placeholder="Filtrer..."
           value={(table.getColumn('description')?.getFilterValue() as string) ?? ''}
           onChange={(event) =>
             table.getColumn('description')?.setFilter(event.target.value)
           }
-          className="h-10 w-[150px] lg:w-[250px]"
+          className="h-10 w-[120px] lg:w-[250px]"
         />
         <DateRangePicker date={date} onDateChange={setDate} />
         {isFiltered && (
