@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: 'Le KAIZEN',
   description: 'A personal finance dashboard to track income and expenses.',
   manifest: '/manifest.webmanifest',
+  icons: null,
 };
 
 export default function RootLayout({

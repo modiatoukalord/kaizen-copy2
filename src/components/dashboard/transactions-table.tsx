@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -102,6 +101,7 @@ export default function TransactionsTable({ transactions, filterType, categoryOp
           ),
           filterFn: (row, id, value) => {
             const date = parseISO(row.getValue(id));
+            if (!value) return true;
             const { from, to } = value;
             if (from && !to) {
               return date >= from;

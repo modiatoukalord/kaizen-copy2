@@ -22,11 +22,11 @@ export default async function Home() {
         </div>
       </div>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="order-2 bg-background/75 backdrop-blur-sm md:order-3 lg:order-4">
+        <Card className="order-1 bg-background/75 backdrop-blur-sm md:order-3 lg:order-4">
             <CardHeader>
                 <CardTitle>Activité Récente</CardTitle>
             </CardHeader>
-            <CardContent className="flex items-center justify-center">
+            <CardContent className="flex items-center justify-center p-6 pt-0">
                 <RecentActivityDialog
                     initialTransactions={initialTransactions}
                     initialTransfers={initialTransfers}
@@ -34,7 +34,7 @@ export default async function Home() {
             </CardContent>
         </Card>
 
-        <Card className="order-1 lg:col-span-2 bg-blue-50/50 dark:bg-blue-900/20 backdrop-blur-sm md:order-1 lg:order-1">
+        <Card className="order-2 lg:col-span-2 bg-blue-50/50 dark:bg-blue-900/20 backdrop-blur-sm md:order-1 lg:order-1">
           <CardHeader>
             <CardTitle>Transactions</CardTitle>
           </CardHeader>
@@ -45,7 +45,7 @@ export default async function Home() {
           </CardContent>
         </Card>
         
-        <Card className="hidden md:order-2 md:block bg-green-50/50 dark:bg-green-900/20 backdrop-blur-sm lg:order-2">
+        <Card className="order-3 md:order-2 bg-green-50/50 dark:bg-green-900/20 backdrop-blur-sm lg:order-2">
           <CardHeader>
             <CardTitle>Synthèse & Rapports</CardTitle>
           </CardHeader>
@@ -54,7 +54,7 @@ export default async function Home() {
           </CardContent>
         </Card>
 
-        <Card className="hidden md:order-4 md:block bg-purple-50/50 dark:bg-purple-900/20 backdrop-blur-sm lg:order-3">
+        <Card className="order-4 md:order-4 bg-purple-50/50 dark:bg-purple-900/20 backdrop-blur-sm lg:order-3">
             <CardHeader>
                 <CardTitle>Planification & Budget</CardTitle>
             </CardHeader>

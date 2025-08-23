@@ -8,7 +8,6 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-import { DataTableFacetedFilter } from './data-table-faceted-filter';
 import { DateRangePicker } from '../ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 
@@ -45,13 +44,6 @@ export function DataTableToolbar<TData>({
           className="h-10 w-[150px] lg:w-[250px]"
         />
         <DateRangePicker date={date} onDateChange={setDate} />
-        {table.getColumn('category') && (
-          <DataTableFacetedFilter
-            column={table.getColumn('category')}
-            title={filterType === 'expense' ? "Sous-catégorie" : "Catégorie"}
-            options={categoryOptions}
-          />
-        )}
         {isFiltered && (
           <Button
             variant="ghost"
