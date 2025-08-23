@@ -19,64 +19,76 @@ interface Message {
   sender: 'user' | 'bot';
 }
 
+function ChatMessages({ messages, isPending, scrollAreaRef }: any) {
+    return (
+        <ScrollArea className="flex-1" ref={scrollAreaRef}>
+            <div className="p-4 space-y-4">
+                {messages.map((message: Message) => (
+                <div
+                    key={message.id}
+                    className={cn(
+                    'flex items-end gap-2',
+                    message.sender === 'user' ? 'justify-end' : 'justify-start'
+                    )}
+                >
+                    {message.sender === 'bot' && (
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src="/images/icons/logo.png" alt="Bot" />
+                        <AvatarFallback>B</AvatarFallback>
+                    </Avatar>
+                    )}
+                    <div
+                    className={cn(
+                        'max-w-[80%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap',
+                        message.sender === 'user'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground'
+                    )}
+                    >
+                    {message.text}
+                    </div>
+                </div>
+                ))}
+                {isPending && (
+                    <div className="flex items-end gap-2 justify-start">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src="/images/icons/logo.png" alt="Bot" />
+                        <AvatarFallback>B</AvatarFallback>
+                    </Avatar>
+                    <div className="bg-muted text-muted-foreground rounded-lg px-3 py-2">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                    </div>
+                </div>
+                )}
+            </div>
+        </ScrollArea>
+    )
+}
+
+function ChatInput({ input, setInput, handleSendMessage, isPending }: any) {
+    return (
+        <footer className="border-t bg-background p-2">
+            <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                <Input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Posez votre question..."
+                    className="flex-1"
+                    disabled={isPending}
+                />
+                <Button type="submit" size="icon" disabled={!input.trim() || isPending}>
+                    <Send className="h-4 w-4" />
+                </Button>
+            </form>
+        </footer>
+    )
+}
+
 function ChatContent({ messages, input, setInput, handleSendMessage, isPending, scrollAreaRef }: any) {
     return (
         <>
-            <ScrollArea className="flex-1 bg-background" ref={scrollAreaRef}>
-                <div className="p-4 space-y-4">
-                    {messages.map((message: Message) => (
-                    <div
-                        key={message.id}
-                        className={cn(
-                        'flex items-end gap-2',
-                        message.sender === 'user' ? 'justify-end' : 'justify-start'
-                        )}
-                    >
-                        {message.sender === 'bot' && (
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src="/images/icons/logo.png" alt="Bot" />
-                            <AvatarFallback>B</AvatarFallback>
-                        </Avatar>
-                        )}
-                        <div
-                        className={cn(
-                            'max-w-[80%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap',
-                            message.sender === 'user'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted text-muted-foreground'
-                        )}
-                        >
-                        {message.text}
-                        </div>
-                    </div>
-                    ))}
-                    {isPending && (
-                        <div className="flex items-end gap-2 justify-start">
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src="/images/icons/logo.png" alt="Bot" />
-                            <AvatarFallback>B</AvatarFallback>
-                        </Avatar>
-                        <div className="bg-muted text-muted-foreground rounded-lg px-3 py-2">
-                            <Loader2 className="h-5 w-5 animate-spin" />
-                        </div>
-                    </div>
-                    )}
-                </div>
-            </ScrollArea>
-            <footer className="border-t bg-background p-2">
-                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                    <Input
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder="Posez votre question..."
-                        className="flex-1"
-                        disabled={isPending}
-                    />
-                    <Button type="submit" size="icon" disabled={!input.trim() || isPending}>
-                        <Send className="h-4 w-4" />
-                    </Button>
-                </form>
-            </footer>
+            <ChatMessages messages={messages} isPending={isPending} scrollAreaRef={scrollAreaRef} />
+            <ChatInput input={input} setInput={setInput} handleSendMessage={handleSendMessage} isPending={isPending} />
         </>
     )
 }
@@ -99,14 +111,13 @@ export default function ChatAssistant() {
   }, [isOpen, messages.length]);
 
   useEffect(() => {
-    // Auto-scroll to the bottom when new messages are added
     if (scrollAreaRef.current) {
         const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
         if (viewport) {
             viewport.scrollTop = viewport.scrollHeight;
         }
     }
-  }, [messages]);
+  }, [messages, isPending]);
 
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -142,7 +153,8 @@ export default function ChatAssistant() {
     });
   };
 
-  const chatContentProps = { messages, input, setInput, handleSendMessage, isPending, scrollAreaRef };
+  const chatInputProps = { input, setInput, handleSendMessage, isPending };
+  const chatMessagesProps = { messages, isPending, scrollAreaRef };
 
   if (isMobile) {
     return (
@@ -158,10 +170,13 @@ export default function ChatAssistant() {
                 </Button>
             </SheetTrigger>
             <SheetContent side="bottom" className="h-full flex flex-col p-0 border-none">
-                 <SheetHeader className='p-4 bg-primary text-primary-foreground text-left'>
-                    <SheetTitle>Assistant Virtuel</SheetTitle>
-                 </SheetHeader>
-                 <ChatContent {...chatContentProps} />
+                 <div className="flex-1 flex flex-col bg-background min-h-0">
+                    <SheetHeader className='p-4 bg-primary text-primary-foreground text-left'>
+                        <SheetTitle>Assistant Virtuel</SheetTitle>
+                    </SheetHeader>
+                    <ChatMessages {...chatMessagesProps} />
+                 </div>
+                 <ChatInput {...chatInputProps} />
             </SheetContent>
         </Sheet>
     )
@@ -188,7 +203,10 @@ export default function ChatAssistant() {
         <header className="bg-primary text-primary-foreground p-4 rounded-t-lg flex justify-between items-center">
             <h3 className="font-bold text-lg">Assistant Virtuel</h3>
         </header>
-        <ChatContent {...chatContentProps} />
+        <div className="flex-1 flex flex-col bg-background min-h-0">
+            <ChatMessages {...chatMessagesProps} />
+            <ChatInput {...chatInputProps} />
+        </div>
       </PopoverContent>
     </Popover>
   );
