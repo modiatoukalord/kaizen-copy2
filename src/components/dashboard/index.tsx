@@ -125,20 +125,20 @@ export default function Dashboard({ initialTransactions, initialTransfers = [], 
     <div className="space-y-4">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             {title && <h2 className="text-2xl font-bold tracking-tight">{title}</h2>}
-            <div className="flex items-center gap-2">
-                <Tabs value={period} onValueChange={(value) => handlePeriodChange(value as Period)} className='w-full md:w-auto'>
-                    <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+            <div className="flex w-full flex-col items-stretch justify-end gap-2 sm:w-auto sm:flex-row">
+                <Tabs value={period} onValueChange={(value) => handlePeriodChange(value as Period)} className='w-full sm:w-auto'>
+                    <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
                         <TabsTrigger value="monthly">Mois</TabsTrigger>
                         <TabsTrigger value="weekly">Semaine</TabsTrigger>
                         <TabsTrigger value="quarterly">Trimestre</TabsTrigger>
                         <TabsTrigger value="annually">Année</TabsTrigger>
                     </TabsList>
                 </Tabs>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center gap-2">
                     <Button variant="outline" size="icon" onClick={() => handleDateChange('prev')}>
                         <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <span className="text-sm font-medium w-32 text-center">{display}</span>
+                    <span className="flex-1 text-sm font-medium w-32 text-center">{display}</span>
                     <Button variant="outline" size="icon" onClick={() => handleDateChange('next')}>
                         <ChevronRight className="h-4 w-4" />
                     </Button>
