@@ -82,7 +82,7 @@ export default function ChatAssistant() {
           <Button
             variant="default"
             size="icon"
-            className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg z-50"
+            className="fixed bottom-20 right-6 h-16 w-16 rounded-full shadow-lg z-50 md:bottom-6"
             aria-label="Ouvrir le chat de l'assistant"
           >
             {isOpen ? <X className="h-8 w-8" /> : <Bot className="h-8 w-8" />}
