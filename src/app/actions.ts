@@ -249,12 +249,12 @@ export async function askAssistant(message: string): Promise<{ reply: string }> 
 
     const data = await response.json();
     
-    // NOTE: Adjust this based on the actual response structure from your n8n workflow
-    const reply = data.reply || data.message || "Désolé, je n'ai pas pu obtenir de réponse.";
+    // The n8n agent returns a JSON object, we need to extract the text response.
+    const reply = data.text || "Désolé, je n'ai pas pu obtenir de réponse.";
 
     return { reply };
   } catch (error) {
     console.error("Erreur lors de la communication avec l'assistant n8n:", error);
-    return { reply: "Une erreur est survenue lors de la communication avec l'assistant. Veuillez réessayer." };
+    throw new Error("Une erreur est survenue lors de la communication avec l'assistant. Veuillez réessayer.");
   }
 }

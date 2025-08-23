@@ -27,7 +27,7 @@ export default function ChatAssistant() {
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       setMessages([
-        { id: 1, text: "Bonjour ! Comment puis-je vous aider aujourd'hui ?", sender: 'bot' },
+        { id: 1, text: "Bonjour ! Je suis Le KAIZEN, votre assistant financier. Comment puis-je vous aider aujourd'hui ?", sender: 'bot' },
       ]);
     }
   }, [isOpen, messages.length]);
@@ -52,16 +52,26 @@ export default function ChatAssistant() {
       sender: 'user',
     };
     setMessages((prev) => [...prev, userMessage]);
+    const currentInput = input;
     setInput('');
 
     startTransition(async () => {
-      const { reply } = await askAssistant(input);
-      const botMessage: Message = {
-        id: Date.now() + 1,
-        text: reply,
-        sender: 'bot',
-      };
-      setMessages((prev) => [...prev, botMessage]);
+      try {
+        const { reply } = await askAssistant(currentInput);
+        const botMessage: Message = {
+          id: Date.now() + 1,
+          text: reply,
+          sender: 'bot',
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      } catch (error) {
+        const errorMessage: Message = {
+            id: Date.now() + 1,
+            text: "Désolé, une erreur s'est produite. Veuillez réessayer.",
+            sender: 'bot',
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      }
     });
   };
 
@@ -105,7 +115,7 @@ export default function ChatAssistant() {
                   )}
                   <div
                     className={cn(
-                      'max-w-[80%] rounded-lg px-3 py-2 text-sm',
+                      'max-w-[80%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap',
                       message.sender === 'user'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted text-muted-foreground'
