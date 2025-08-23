@@ -33,7 +33,7 @@ export default async function Home() {
           </CardContent>
         </Card>
 
-        <Card className="bg-green-50/50 dark:bg-green-900/20 backdrop-blur-sm">
+        <Card className="hidden md:block bg-green-50/50 dark:bg-green-900/20 backdrop-blur-sm">
           <CardHeader>
             <CardTitle>Synthèse & Rapports</CardTitle>
           </CardHeader>
@@ -43,8 +43,8 @@ export default async function Home() {
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-            <Card className="bg-purple-50/50 dark:bg-purple-900/20 backdrop-blur-sm">
+       <div className="grid gap-6 md:grid-cols-2">
+            <Card className="hidden md:block bg-purple-50/50 dark:bg-purple-900/20 backdrop-blur-sm">
                 <CardHeader>
                     <CardTitle>Planification & Budget</CardTitle>
                 </CardHeader>
@@ -52,7 +52,7 @@ export default async function Home() {
                     <DashboardActionItem href="/planning" imgSrc="/images/icons/planning.png" label="Planning" />
                 </CardContent>
             </Card>
-
+            
             <Card className="bg-background/75 backdrop-blur-sm">
                 <CardHeader>
                     <CardTitle>Activité Récente</CardTitle>
