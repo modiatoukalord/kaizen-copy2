@@ -30,7 +30,7 @@ export default function IncomeExpenseChart({ transactions }: IncomeExpenseChartP
       </CardHeader>
       <CardContent>
         <ChartContainer config={{}} className="h-[300px] w-full">
-          <BarChart data={chartData} accessibilityLayer>
+          <BarChart data={chartData} accessibilityLayer margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
             <CartesianGrid vertical={false} />
             <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} />
             <YAxis tickFormatter={(value) => formatCurrency(value as number, currency, true, true)} />

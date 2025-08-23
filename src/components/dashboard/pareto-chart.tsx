@@ -65,7 +65,7 @@ export default function ParetoChart({ transactions }: ParetoChartProps) {
       </CardHeader>
       <CardContent>
         <ChartContainer config={{}} className="h-[300px] w-full">
-          <ComposedChart data={chartData} accessibilityLayer>
+          <ComposedChart data={chartData} accessibilityLayer margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="category" tickLine={false} axisLine={false} tickMargin={8} />
             <YAxis yAxisId="left" orientation="left" stroke="hsl(var(--primary))" tickFormatter={(value) => formatCurrency(value as number, currency, true, true)} />
