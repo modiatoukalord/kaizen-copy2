@@ -225,3 +225,36 @@ export async function handleDeleteCalendarEvent(id: string) {
     return { message: 'Erreur lors de la suppression de l\'événement.', success: false };
   }
 }
+
+export async function askAssistant(message: string): Promise<{ reply: string }> {
+  const webhookUrl = process.env.N8N_WEBHOOK_URL;
+  if (!webhookUrl) {
+    throw new Error("L'URL du webhook n8n n'est pas configurée.");
+  }
+
+  try {
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error(`Erreur de webhook n8n: ${response.status} ${response.statusText}`, errorBody);
+      throw new Error(`La requête au webhook a échoué avec le statut ${response.status}.`);
+    }
+
+    const data = await response.json();
+    
+    // NOTE: Adjust this based on the actual response structure from your n8n workflow
+    const reply = data.reply || data.message || "Désolé, je n'ai pas pu obtenir de réponse.";
+
+    return { reply };
+  } catch (error) {
+    console.error("Erreur lors de la communication avec l'assistant n8n:", error);
+    return { reply: "Une erreur est survenue lors de la communication avec l'assistant. Veuillez réessayer." };
+  }
+}

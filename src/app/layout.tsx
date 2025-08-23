@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import DashboardHeader from '@/components/dashboard/dashboard-header';
 import { CurrencyProvider } from '@/contexts/currency-context';
 import MobileNav from '@/components/dashboard/mobile-nav';
+import ChatAssistant from '@/components/assistant/chat-assistant';
 
 export const metadata: Metadata = {
   title: 'Le KAIZEN',
@@ -37,6 +38,7 @@ export default function RootLayout({
                   {children}
               </main>
           </div>
+          <ChatAssistant />
           <MobileNav />
           <Toaster />
         </CurrencyProvider>
