@@ -45,7 +45,7 @@ function ChatMessages({ messages, isPending, scrollAreaRef }: any) {
                         : 'bg-muted text-muted-foreground'
                     )}
                     >
-                    {message.text}
+                    {message.text.replace(/\*/g, '')}
                     </div>
                 </div>
                 ))}
