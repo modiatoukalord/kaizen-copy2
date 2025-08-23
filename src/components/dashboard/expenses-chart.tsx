@@ -50,7 +50,7 @@ export default function ExpensesChart({ transactions }: ExpensesChartProps) {
             <ChartContainer config={{}} className="h-[300px] w-full">
             <BarChart data={chartData} accessibilityLayer>
                 <XAxis dataKey="category" tickLine={false} axisLine={false} tickMargin={8} />
-                <YAxis tickFormatter={(value) => formatCurrency(value as number, currency).replace(/\.00$/, '')} />
+                <YAxis tickFormatter={(value) => formatCurrency(value as number, currency, true, true)} />
                 <Tooltip
                     cursor={{ fill: 'hsl(var(--muted))' }}
                     content={<ChartTooltipContent formatter={(value) => formatCurrency(value as number, currency)} />}
