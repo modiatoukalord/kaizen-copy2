@@ -3,12 +3,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, BarChart2, CalendarDays, ArrowRightLeft, Plus, Wallet, TrendingUp, TrendingDown, Repeat } from 'lucide-react';
+import { LayoutDashboard, BarChart2, CalendarDays, ArrowRightLeft, Plus, Wallet, TrendingUp, TrendingDown, Repeat, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AddTransactionSheet } from './add-transaction-sheet';
 import { Button } from '../ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription, SheetClose } from '../ui/sheet';
 import { useState } from 'react';
+import ChatAssistant from '../assistant/chat-assistant';
 
 export default function MobileNav() {
     const pathname = usePathname();
@@ -43,12 +44,12 @@ export default function MobileNav() {
                 })}
                 
                 <div className="flex justify-center">
-                    <AddTransactionSheet>
-                         <Button size="icon" className="h-14 w-14 rounded-full shadow-lg -translate-y-4">
-                            <Plus className="h-6 w-6" />
-                            <span className="sr-only">Ajouter une transaction</span>
+                   <ChatAssistant>
+                        <Button size="icon" className="h-14 w-14 rounded-full shadow-lg -translate-y-4">
+                            <Bot className="h-6 w-6" />
+                            <span className="sr-only">Ouvrir l'assistant</span>
                         </Button>
-                    </AddTransactionSheet>
+                   </ChatAssistant>
                 </div>
                 
                  {secondaryNavItems.map((item) => {
@@ -74,10 +75,17 @@ export default function MobileNav() {
                             <SheetDescription>Naviguez vers les sections financières.</SheetDescription>
                         </SheetHeader>
                         <div className="grid gap-3 py-4">
+                            <AddTransactionSheet>
+                                <Button variant="ghost" className='justify-start text-base p-3 h-auto'>
+                                    <Plus className="mr-3 h-5 w-5" />
+                                    Ajouter une transaction
+                                </Button>
+                            </AddTransactionSheet>
+
                             {actionsNavItems.map((item) => {
                                 const isActive = pathname.startsWith(item.href);
                                 return (
-                                    <Link key={item.href} href={item.href} onClick={() => setIsSheetOpen(false)} className={cn("flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary", isActive && "bg-muted text-primary")}>
+                                    <Link key={item.href} href={item.href} onClick={() => setIsSheetOpen(false)} className={cn("flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary text-base", isActive && "bg-muted text-primary")}>
                                         <item.icon className="h-5 w-5" />
                                         {item.label}
                                     </Link>

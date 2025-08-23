@@ -10,6 +10,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { askAssistant } from '@/app/actions';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
 
 interface Message {
   id: number;
@@ -17,83 +19,20 @@ interface Message {
   sender: 'user' | 'bot';
 }
 
-export default function ChatAssistant() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [isPending, startTransition] = useTransition();
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (isOpen && messages.length === 0) {
-      setMessages([
-        { id: 1, text: "Bonjour ! Je suis Le KAIZEN, votre assistant financier. Comment puis-je vous aider aujourd'hui ?", sender: 'bot' },
-      ]);
-    }
-  }, [isOpen, messages.length]);
-
-  useEffect(() => {
-    // Auto-scroll to the bottom when new messages are added
-    if (scrollAreaRef.current) {
-        const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
-        if (viewport) {
-            viewport.scrollTop = viewport.scrollHeight;
+function ChatContent({ onSendMessage, messages, input, setInput, isPending }: { onSendMessage: (e: React.FormEvent) => void, messages: Message[], input: string, setInput: (s:string)=>void, isPending: boolean}) {
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        // Auto-scroll to the bottom when new messages are added
+        if (scrollAreaRef.current) {
+            const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+            if (viewport) {
+                viewport.scrollTop = viewport.scrollHeight;
+            }
         }
-    }
-  }, [messages]);
+    }, [messages]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isPending) return;
-
-    const userMessage: Message = {
-      id: Date.now(),
-      text: input,
-      sender: 'user',
-    };
-    setMessages((prev) => [...prev, userMessage]);
-    const currentInput = input;
-    setInput('');
-
-    startTransition(async () => {
-      try {
-        const { reply } = await askAssistant(currentInput);
-        const botMessage: Message = {
-          id: Date.now() + 1,
-          text: reply,
-          sender: 'bot',
-        };
-        setMessages((prev) => [...prev, botMessage]);
-      } catch (error) {
-        const errorMessage: Message = {
-            id: Date.now() + 1,
-            text: "Désolé, une erreur s'est produite. Veuillez réessayer.",
-            sender: 'bot',
-        };
-        setMessages((prev) => [...prev, errorMessage]);
-      }
-    });
-  };
-
-  return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="default"
-          size="icon"
-          className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg z-50"
-          aria-label="Ouvrir le chat de l'assistant"
-        >
-          {isOpen ? <X className="h-8 w-8" /> : <Bot className="h-8 w-8" />}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        side="top"
-        align="end"
-        className="w-80 md:w-96 rounded-lg shadow-xl border-none p-0"
-        sideOffset={20}
-      >
-        <div className="flex flex-col h-[60vh]">
+    return (
+        <div className="flex flex-col h-full">
           <header className="bg-primary text-primary-foreground p-4 rounded-t-lg">
             <h3 className="font-bold text-lg">Assistant Virtuel</h3>
           </header>
@@ -139,7 +78,7 @@ export default function ChatAssistant() {
             </div>
           </ScrollArea>
           <footer className="border-t bg-background p-2 rounded-b-lg">
-            <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+            <form onSubmit={onSendMessage} className="flex items-center gap-2">
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -153,6 +92,100 @@ export default function ChatAssistant() {
             </form>
           </footer>
         </div>
+    )
+}
+
+export default function ChatAssistant({ children }: { children?: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [isPending, startTransition] = useTransition();
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      setMessages([
+        { id: 1, text: "Bonjour ! Je suis Le KAIZEN, votre assistant financier. Comment puis-je vous aider aujourd'hui ?", sender: 'bot' },
+      ]);
+    }
+  }, [isOpen, messages.length]);
+
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isPending) return;
+
+    const userMessage: Message = {
+      id: Date.now(),
+      text: input,
+      sender: 'user',
+    };
+    setMessages((prev) => [...prev, userMessage]);
+    const currentInput = input;
+    setInput('');
+
+    startTransition(async () => {
+      try {
+        const { reply } = await askAssistant(currentInput);
+        const botMessage: Message = {
+          id: Date.now() + 1,
+          text: reply,
+          sender: 'bot',
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      } catch (error) {
+        const errorMessage: Message = {
+            id: Date.now() + 1,
+            text: "Désolé, une erreur s'est produite. Veuillez réessayer.",
+            sender: 'bot',
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      }
+    });
+  };
+
+  const chatContentProps = {
+    onSendMessage: handleSendMessage,
+    messages,
+    input,
+    setInput,
+    isPending
+  };
+
+  if (isMobile) {
+      return (
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                  {children || <Button>Open Chat</Button>}
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-full p-0 border-none">
+                  <ChatContent {...chatContentProps} />
+              </SheetContent>
+          </Sheet>
+      );
+  }
+
+  return (
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        {children || (
+          <Button
+            variant="default"
+            size="icon"
+            className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg z-50"
+            aria-label="Ouvrir le chat de l'assistant"
+          >
+            {isOpen ? <X className="h-8 w-8" /> : <Bot className="h-8 w-8" />}
+          </Button>
+        )}
+      </PopoverTrigger>
+      <PopoverContent
+        side="top"
+        align="end"
+        className="w-80 md:w-96 rounded-lg shadow-xl border-none p-0 h-[60vh]"
+        sideOffset={20}
+      >
+        <ChatContent {...chatContentProps} />
       </PopoverContent>
     </Popover>
   );
