@@ -29,6 +29,7 @@ import SummaryChart from './summary-chart';
 import ExpensesChart from './expenses-chart';
 import { IncomeCategory, AllExpenseSubCategories } from '@/lib/types';
 import { getTransactions, getTransfers } from '@/lib/data';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 interface DashboardProps {
@@ -126,14 +127,29 @@ export default function Dashboard({ initialTransactions, initialTransfers = [], 
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             {title && <h2 className="text-2xl font-bold tracking-tight">{title}</h2>}
             <div className="flex w-full flex-col items-stretch justify-end gap-2 sm:w-auto sm:flex-row">
-                <Tabs value={period} onValueChange={(value) => handlePeriodChange(value as Period)} className='w-full sm:w-auto'>
-                    <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
-                        <TabsTrigger value="monthly">Mois</TabsTrigger>
-                        <TabsTrigger value="weekly">Semaine</TabsTrigger>
-                        <TabsTrigger value="quarterly">Trimestre</TabsTrigger>
-                        <TabsTrigger value="annually">Année</TabsTrigger>
-                    </TabsList>
-                </Tabs>
+                <div className="sm:hidden">
+                    <Select value={period} onValueChange={(value) => handlePeriodChange(value as Period)}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner une période" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="monthly">Mois</SelectItem>
+                            <SelectItem value="weekly">Semaine</SelectItem>
+                            <SelectItem value="quarterly">Trimestre</SelectItem>
+                            <SelectItem value="annually">Année</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="hidden sm:block">
+                  <Tabs value={period} onValueChange={(value) => handlePeriodChange(value as Period)} className='w-full sm:w-auto'>
+                      <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+                          <TabsTrigger value="monthly">Mois</TabsTrigger>
+                          <TabsTrigger value="weekly">Semaine</TabsTrigger>
+                          <TabsTrigger value="quarterly">Trimestre</TabsTrigger>
+                          <TabsTrigger value="annually">Année</TabsTrigger>
+                      </TabsList>
+                  </Tabs>
+                </div>
                 <div className="flex items-center justify-center gap-2">
                     <Button variant="outline" size="icon" onClick={() => handleDateChange('prev')}>
                         <ChevronLeft className="h-4 w-4" />
