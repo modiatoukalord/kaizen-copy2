@@ -28,6 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
+    // This effect runs on the client-side after hydration
     try {
       const sessionUser = sessionStorage.getItem('finance-app-session');
       if (sessionUser) {
@@ -51,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const currentUser = { username };
         setUser(currentUser);
         sessionStorage.setItem('finance-app-session', JSON.stringify(currentUser));
-        router.push('/dashboard');
+        router.replace('/dashboard');
       } else {
         throw new Error('Nom d\'utilisateur ou code PIN incorrect.');
       }
@@ -60,16 +61,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const pinHash = mockHash(pin);
       const newUser = { username, pinHash };
       localStorage.setItem('finance-app-user', JSON.stringify(newUser));
-      setUser({ username });
-      sessionStorage.setItem('finance-app-session', JSON.stringify({ username }));
-      router.push('/dashboard');
+      const currentUser = { username };
+      setUser(currentUser);
+      sessionStorage.setItem('finance-app-session', JSON.stringify(currentUser));
+      router.replace('/dashboard');
     }
   }, [router]);
 
   const logout = useCallback(() => {
     setUser(null);
     sessionStorage.removeItem('finance-app-session');
-    router.push('/login');
+    router.replace('/login');
   }, [router]);
 
   const changePin = useCallback((username: string, oldPin: string, newPin: string) => {
