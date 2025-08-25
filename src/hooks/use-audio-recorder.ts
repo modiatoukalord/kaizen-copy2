@@ -47,11 +47,17 @@ export const useAudioRecorder = ({ onRecordingComplete }: UseAudioRecorderProps)
       mediaRecorder.start();
       setIsRecording(true);
     } catch (err) {
-      console.error('Error accessing microphone:', err);
+        console.error('Error accessing microphone:', err);
+        let title = 'Accès au microphone refusé';
+        let description = 'Veuillez autoriser l\'accès au microphone dans les paramètres de votre navigateur.';
+        if (err instanceof DOMException && err.name === 'NotFoundError') {
+            title = 'Microphone non trouvé';
+            description = 'Aucun microphone n\'a été détecté. Veuillez vérifier que votre appareil est bien connecté.';
+        }
        toast({
         variant: 'destructive',
-        title: 'Accès au microphone refusé',
-        description: 'Veuillez autoriser l\'accès au microphone dans les paramètres de votre navigateur.',
+        title: title,
+        description: description,
       });
     }
   }, [onRecordingComplete]);
