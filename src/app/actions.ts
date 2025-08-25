@@ -255,7 +255,8 @@ export async function askAssistant(payload: AskAssistantPayload): Promise<{ repl
 
     const data = await response.json();
     
-    const reply = data.reply || "Désolé, je n'ai pas pu obtenir de réponse.";
+    // The n8n workflow returns a 'reponse' field, not 'reply'
+    const reply = data.reponse || "Désolé, je n'ai pas pu obtenir de réponse.";
 
     return { reply };
   } catch (error) {

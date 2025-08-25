@@ -57,7 +57,7 @@ export const useAudioRecorder = ({ onRecordingComplete }: UseAudioRecorderProps)
             if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
                 title = 'Microphone non trouvé';
                 description = 'Aucun microphone n\'a été détecté. Veuillez vérifier que votre appareil est bien connecté.';
-            } else if (err.name === 'NotAllowedError') {
+            } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
                  title = 'Permission refusée';
                  description = 'Vous avez refusé l\'accès au microphone. Veuillez l\'autoriser dans les paramètres de votre navigateur.';
             }

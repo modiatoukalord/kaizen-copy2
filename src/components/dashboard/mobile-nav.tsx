@@ -3,17 +3,19 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, BarChart2, CalendarDays, ArrowRightLeft, Plus, Settings, TrendingUp, TrendingDown, Repeat } from 'lucide-react';
+import { LayoutDashboard, BarChart2, CalendarDays, ArrowRightLeft, Plus, Settings, TrendingUp, TrendingDown, Repeat, ArrowLeftRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AddTransactionSheet } from './add-transaction-sheet';
 import { Button } from '../ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription, SheetClose } from '../ui/sheet';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
+import { AddTransferSheet } from './add-transfer-sheet';
 
 export default function MobileNav() {
     const pathname = usePathname();
     const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [isAddSheetOpen, setAddSheetOpen] = useState(false);
     const { isAuthenticated } = useAuth();
 
     if (!isAuthenticated || pathname === '/login') {
@@ -50,12 +52,40 @@ export default function MobileNav() {
                 })}
                 
                 <div className="flex justify-center">
-                    <AddTransactionSheet>
-                        <Button size="icon" className="h-14 w-14 rounded-full shadow-lg -translate-y-4">
-                            <Plus className="h-6 w-6" />
-                            <span className="sr-only">Ajouter une transaction</span>
-                        </Button>
-                    </AddTransactionSheet>
+                    <Sheet open={isAddSheetOpen} onOpenChange={setAddSheetOpen}>
+                        <SheetTrigger asChild>
+                            <Button size="icon" className="h-14 w-14 rounded-full shadow-lg -translate-y-4">
+                                <Plus className="h-6 w-6" />
+                                <span className="sr-only">Ajouter une opération</span>
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="bottom" className="rounded-t-lg">
+                            <SheetHeader>
+                                <SheetTitle>Nouvelle opération</SheetTitle>
+                                <SheetDescription>Que souhaitez-vous ajouter ?</SheetDescription>
+                            </SheetHeader>
+                            <div className="grid gap-3 py-4">
+                                <AddTransactionSheet type="income">
+                                    <Button variant="ghost" className='justify-start text-base p-3 h-auto' onClick={() => setAddSheetOpen(false)}>
+                                        <TrendingUp className="mr-3 h-5 w-5" />
+                                        Ajouter un revenu
+                                    </Button>
+                                </AddTransactionSheet>
+                                <AddTransactionSheet type="expense">
+                                     <Button variant="ghost" className='justify-start text-base p-3 h-auto' onClick={() => setAddSheetOpen(false)}>
+                                        <TrendingDown className="mr-3 h-5 w-5" />
+                                        Ajouter une dépense
+                                    </Button>
+                                </AddTransactionSheet>
+                                 <AddTransferSheet>
+                                     <Button variant="ghost" className='justify-start text-base p-3 h-auto' onClick={() => setAddSheetOpen(false)}>
+                                        <ArrowLeftRight className="mr-3 h-5 w-5" />
+                                        Ajouter un virement
+                                    </Button>
+                                </AddTransferSheet>
+                            </div>
+                        </SheetContent>
+                    </Sheet>
                 </div>
                 
                  {secondaryNavItems.map((item) => {
@@ -81,13 +111,6 @@ export default function MobileNav() {
                             <SheetDescription>Naviguez vers les sections financières.</SheetDescription>
                         </SheetHeader>
                         <div className="grid gap-3 py-4">
-                            <AddTransactionSheet>
-                                <Button variant="ghost" className='justify-start text-base p-3 h-auto'>
-                                    <Plus className="mr-3 h-5 w-5" />
-                                    Ajouter une transaction
-                                </Button>
-                            </AddTransactionSheet>
-
                             {actionsNavItems.map((item) => {
                                 const isActive = pathname.startsWith(item.href);
                                 return (
