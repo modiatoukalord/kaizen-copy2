@@ -17,7 +17,8 @@ export const useAudioRecorder = ({ onRecordingComplete }: UseAudioRecorderProps)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      // Let the browser choose the mimeType
+      // Laisse le navigateur choisir le meilleur mimeType supporté (souvent audio/webm ou audio/ogg)
+      // pour garantir la compatibilité et la qualité.
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
@@ -27,11 +28,12 @@ export const useAudioRecorder = ({ onRecordingComplete }: UseAudioRecorderProps)
       };
 
       mediaRecorder.onstop = () => {
+        // Récupère le mimeType réellement utilisé par le navigateur.
         const mimeType = mediaRecorderRef.current?.mimeType || 'audio/webm';
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
         const audioUrl = URL.createObjectURL(audioBlob);
         onRecordingComplete(audioUrl, audioBlob, mimeType);
-        // Clean up the stream tracks
+        // Nettoie les pistes du stream.
         stream.getTracks().forEach(track => track.stop());
       };
       
@@ -52,7 +54,7 @@ export const useAudioRecorder = ({ onRecordingComplete }: UseAudioRecorderProps)
         let title = 'Accès au microphone refusé';
         let description = 'Veuillez autoriser l\'accès au microphone dans les paramètres de votre navigateur.';
         if (err instanceof DOMException) {
-            if (err.name === 'NotFoundError') {
+            if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
                 title = 'Microphone non trouvé';
                 description = 'Aucun microphone n\'a été détecté. Veuillez vérifier que votre appareil est bien connecté.';
             } else if (err.name === 'NotAllowedError') {
