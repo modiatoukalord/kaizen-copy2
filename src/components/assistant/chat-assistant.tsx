@@ -101,17 +101,36 @@ export default function ChatAssistant() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 768px)");
   const audioRecorderProps = useAudioRecorder({ 
-      onRecordingComplete: (audioUrl) => {
-          setMessages(prev => [...prev, { id: Date.now(), sender: 'user', audioUrl }]);
-          // Here you would typically send the audio to the server.
-          // For now, we'll just add a mock bot response.
+      onRecordingComplete: (audioUrl, audioBlob, mimeType) => {
+          const userMessage: Message = { id: Date.now(), sender: 'user', audioUrl };
+          setMessages(prev => [...prev, userMessage]);
+          
           startTransition(async () => {
-              const botMessage: Message = {
-                  id: Date.now() + 1,
-                  text: "J'ai bien reçu votre message vocal. Je ne suis pas encore capable de le traiter.",
-                  sender: 'bot',
-              };
-              setMessages((prev) => [...prev, botMessage]);
+              try {
+                // Convert blob to base64
+                const reader = new FileReader();
+                reader.readAsDataURL(audioBlob);
+                reader.onloadend = async () => {
+                    const base64data = reader.result as string;
+                    
+                    const { reply } = await askAssistant({ audioData: base64data, mimeType });
+
+                    const botMessage: Message = {
+                        id: Date.now() + 1,
+                        text: reply,
+                        sender: 'bot',
+                    };
+                    setMessages((prev) => [...prev, botMessage]);
+                };
+              } catch (error) {
+                console.error("Error sending audio message:", error);
+                const errorMessage: Message = {
+                    id: Date.now() + 1,
+                    text: "Désolé, une erreur s'est produite lors de l'envoi du message vocal. Veuillez réessayer.",
+                    sender: 'bot',
+                };
+                setMessages((prev) => [...prev, errorMessage]);
+              }
           });
       }
   });
@@ -137,7 +156,7 @@ export default function ChatAssistant() {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isPending) return;
+    if (!input.trim() || isPending || audioRecorderProps.isRecording) return;
 
     const userMessage: Message = {
       id: Date.now(),
@@ -150,7 +169,7 @@ export default function ChatAssistant() {
 
     startTransition(async () => {
       try {
-        const { reply } = await askAssistant(currentInput);
+        const { reply } = await askAssistant({ message: currentInput });
         const botMessage: Message = {
           id: Date.now() + 1,
           text: reply,

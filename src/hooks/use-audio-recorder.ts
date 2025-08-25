@@ -5,8 +5,10 @@ import { useState, useRef, useCallback } from 'react';
 import { toast } from './use-toast';
 
 interface UseAudioRecorderProps {
-  onRecordingComplete: (audioUrl: string) => void;
+  onRecordingComplete: (audioUrl: string, audioBlob: Blob, mimeType: string) => void;
 }
+
+const mimeType = 'audio/wav';
 
 export const useAudioRecorder = ({ onRecordingComplete }: UseAudioRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false);
@@ -16,7 +18,7 @@ export const useAudioRecorder = ({ onRecordingComplete }: UseAudioRecorderProps)
   const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -25,9 +27,9 @@ export const useAudioRecorder = ({ onRecordingComplete }: UseAudioRecorderProps)
       };
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
         const audioUrl = URL.createObjectURL(audioBlob);
-        onRecordingComplete(audioUrl);
+        onRecordingComplete(audioUrl, audioBlob, mimeType);
         // Clean up the stream tracks
         stream.getTracks().forEach(track => track.stop());
       };

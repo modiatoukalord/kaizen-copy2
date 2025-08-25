@@ -226,7 +226,13 @@ export async function handleDeleteCalendarEvent(id: string) {
   }
 }
 
-export async function askAssistant(message: string): Promise<{ reply: string }> {
+interface AskAssistantPayload {
+  message?: string;
+  audioData?: string;
+  mimeType?: string;
+}
+
+export async function askAssistant(payload: AskAssistantPayload): Promise<{ reply: string }> {
   const webhookUrl = process.env.N8N_WEBHOOK_URL;
   if (!webhookUrl) {
     throw new Error("L'URL du webhook n8n n'est pas configurée.");
@@ -238,7 +244,7 @@ export async function askAssistant(message: string): Promise<{ reply: string }> 
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
