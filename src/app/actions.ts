@@ -232,10 +232,10 @@ interface AskAssistantPayload {
   mimeType?: string;
 }
 
-export async function askAssistant(payload: AskAssistantPayload): Promise<{ reply: string }> {
+export async function askAssistant(payload: AskAssistantPayload): Promise<{ reply?: string, error?: string }> {
   const webhookUrl = process.env.N8N_WEBHOOK_URL;
   if (!webhookUrl) {
-    throw new Error("L'URL du webhook n8n n'est pas configurée.");
+    return { error: "L'URL du webhook n8n n'est pas configurée." };
   }
 
   try {
@@ -250,17 +250,16 @@ export async function askAssistant(payload: AskAssistantPayload): Promise<{ repl
     if (!response.ok) {
       const errorBody = await response.text();
       console.error(`Erreur de webhook n8n: ${response.status} ${response.statusText}`, errorBody);
-      throw new Error(`La requête au webhook a échoué avec le statut ${response.status}.`);
+      return { error: `La requête au webhook a échoué avec le statut ${response.status}.` };
     }
 
     const data = await response.json();
     
-    // The n8n agent returns a JSON object, we need to extract the text response.
     const reply = data.reply || "Désolé, je n'ai pas pu obtenir de réponse.";
 
     return { reply };
   } catch (error) {
     console.error("Erreur lors de la communication avec l'assistant n8n:", error);
-    throw new Error("Une erreur est survenue lors de la communication avec l'assistant. Veuillez réessayer.");
+    return { error: "Une erreur est survenue lors de la communication avec l'assistant. Veuillez réessayer." };
   }
 }

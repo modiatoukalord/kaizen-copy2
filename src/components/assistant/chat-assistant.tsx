@@ -113,11 +113,15 @@ export default function ChatAssistant() {
                 reader.onloadend = async () => {
                     const base64data = reader.result as string;
                     
-                    const { reply } = await askAssistant({ audioData: base64data, mimeType });
+                    const result = await askAssistant({ audioData: base64data, mimeType });
+
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
 
                     const botMessage: Message = {
                         id: Date.now() + 1,
-                        text: reply,
+                        text: result.reply,
                         sender: 'bot',
                     };
                     setMessages((prev) => [...prev, botMessage]);
@@ -126,7 +130,7 @@ export default function ChatAssistant() {
                 console.error("Error sending audio message:", error);
                 const errorMessage: Message = {
                     id: Date.now() + 1,
-                    text: "Désolé, une erreur s'est produite lors de l'envoi du message vocal. Veuillez réessayer.",
+                    text: error instanceof Error ? error.message : "Désolé, une erreur s'est produite lors de l'envoi du message vocal. Veuillez réessayer.",
                     sender: 'bot',
                 };
                 setMessages((prev) => [...prev, errorMessage]);
@@ -169,17 +173,21 @@ export default function ChatAssistant() {
 
     startTransition(async () => {
       try {
-        const { reply } = await askAssistant({ message: currentInput });
+        const result = await askAssistant({ message: currentInput });
+        if (result.error) {
+            throw new Error(result.error);
+        }
+
         const botMessage: Message = {
           id: Date.now() + 1,
-          text: reply,
+          text: result.reply,
           sender: 'bot',
         };
         setMessages((prev) => [...prev, botMessage]);
       } catch (error) {
         const errorMessage: Message = {
             id: Date.now() + 1,
-            text: "Désolé, une erreur s'est produite. Veuillez réessayer.",
+            text: error instanceof Error ? error.message : "Désolé, une erreur s'est produite. Veuillez réessayer.",
             sender: 'bot',
         };
         setMessages((prev) => [...prev, errorMessage]);
