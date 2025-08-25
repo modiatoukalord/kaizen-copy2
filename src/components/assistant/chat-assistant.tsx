@@ -12,11 +12,12 @@ import { askAssistant } from '@/app/actions';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
+import { useAudioRecorder } from '@/hooks/use-audio-recorder';
 
 interface Message {
   id: number;
-  text: string;
+  text?: string;
+  audioUrl?: string;
   sender: 'user' | 'bot';
 }
 
@@ -39,41 +40,36 @@ function ChatMessages({ messages, isPending, scrollAreaRef }: any) {
                     </Avatar>
                     )}
                     <div
-                    className={cn(
-                        'max-w-[80%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap',
-                        message.sender === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
-                    )}
+                        className={cn(
+                            'max-w-[80%] rounded-lg px-3 py-2 text-sm',
+                            message.sender === 'user'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted text-muted-foreground'
+                        )}
                     >
-                    {message.text}
+                        {message.text && <p className="whitespace-pre-wrap">{message.text}</p>}
+                        {message.audioUrl && <audio controls src={message.audioUrl} className="w-full" />}
                     </div>
                 </div>
                 ))}
                 {isPending && (
                     <div className="flex items-end gap-2 justify-start">
-                    <Avatar className="h-8 w-8">
-                        <AvatarImage src="/images/icons/logo.png" alt="Bot" />
-                        <AvatarFallback>B</AvatarFallback>
-                    </Avatar>
-                    <div className="bg-muted text-muted-foreground rounded-lg px-3 py-2">
-                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage src="/images/icons/logo.png" alt="Bot" />
+                            <AvatarFallback>B</AvatarFallback>
+                        </Avatar>
+                        <div className="bg-muted text-muted-foreground rounded-lg px-3 py-2">
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                        </div>
                     </div>
-                </div>
                 )}
             </div>
         </ScrollArea>
     )
 }
 
-function ChatInput({ input, setInput, handleSendMessage, isPending, speechRecognitionProps }: any) {
-    const { isListening, transcript, startListening, stopListening } = speechRecognitionProps;
-    
-    useEffect(() => {
-        if (transcript) {
-            setInput(transcript)
-        }
-    }, [transcript, setInput]);
+function ChatInput({ input, setInput, handleSendMessage, isPending, audioRecorderProps }: any) {
+    const { isRecording, startRecording, stopRecording } = audioRecorderProps;
 
     return (
         <footer className="border-t bg-background p-2">
@@ -81,15 +77,15 @@ function ChatInput({ input, setInput, handleSendMessage, isPending, speechRecogn
                 <Input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder={isListening ? "Je vous écoute..." : "Posez votre question..."}
+                    placeholder={isRecording ? "Enregistrement en cours..." : "Posez votre question..."}
                     className="flex-1"
-                    disabled={isPending}
+                    disabled={isPending || isRecording}
                 />
-                <Button type='button' variant="ghost" size="icon" onClick={isListening ? stopListening : startListening}>
-                    {isListening ? <MicOff className="h-5 w-5 text-destructive" /> : <Mic className="h-5 w-5" />}
-                    <span className="sr-only">{isListening ? "Arrêter l'enregistrement" : "Démarrer l'enregistrement"}</span>
+                <Button type='button' variant="ghost" size="icon" onClick={isRecording ? stopRecording : startRecording} disabled={isPending}>
+                    {isRecording ? <MicOff className="h-5 w-5 text-destructive animate-pulse" /> : <Mic className="h-5 w-5" />}
+                    <span className="sr-only">{isRecording ? "Arrêter l'enregistrement" : "Démarrer l'enregistrement"}</span>
                 </Button>
-                <Button type="submit" size="icon" disabled={!input.trim() || isPending}>
+                <Button type="submit" size="icon" disabled={!input.trim() || isPending || isRecording}>
                     <Send className="h-4 w-4" />
                 </Button>
             </form>
@@ -104,8 +100,20 @@ export default function ChatAssistant() {
   const [isPending, startTransition] = useTransition();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const speechRecognitionProps = useSpeechRecognition({
-      onEnd: () => {}, // You can add logic here if needed
+  const audioRecorderProps = useAudioRecorder({ 
+      onRecordingComplete: (audioUrl) => {
+          setMessages(prev => [...prev, { id: Date.now(), sender: 'user', audioUrl }]);
+          // Here you would typically send the audio to the server.
+          // For now, we'll just add a mock bot response.
+          startTransition(async () => {
+              const botMessage: Message = {
+                  id: Date.now() + 1,
+                  text: "J'ai bien reçu votre message vocal. Je ne suis pas encore capable de le traiter.",
+                  sender: 'bot',
+              };
+              setMessages((prev) => [...prev, botMessage]);
+          });
+      }
   });
 
 
@@ -129,9 +137,6 @@ export default function ChatAssistant() {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (speechRecognitionProps.isListening) {
-        speechRecognitionProps.stopListening();
-    }
     if (!input.trim() || isPending) return;
 
     const userMessage: Message = {
@@ -163,7 +168,7 @@ export default function ChatAssistant() {
     });
   };
 
-  const chatInputProps = { input, setInput, handleSendMessage, isPending, speechRecognitionProps };
+  const chatInputProps = { input, setInput, handleSendMessage, isPending, audioRecorderProps };
   const chatMessagesProps = { messages, isPending, scrollAreaRef };
 
   if (isMobile) {
