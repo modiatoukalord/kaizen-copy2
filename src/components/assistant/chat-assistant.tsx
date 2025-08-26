@@ -48,7 +48,12 @@ function ChatMessages({ messages, isPending, scrollAreaRef }: any) {
                         )}
                     >
                         {message.text && <p className="whitespace-pre-wrap">{message.text.replace(/\*\*/g, '')}</p>}
-                        {message.audioUrl && <audio controls src={message.audioUrl} className="w-full" />}
+                        {message.audioUrl && (
+                          <div className="space-y-1">
+                              <p className="text-xs font-medium italic">Note vocale</p>
+                              <audio controls src={message.audioUrl} className="w-full h-10" />
+                          </div>
+                        )}
                     </div>
                 </div>
                 ))}
