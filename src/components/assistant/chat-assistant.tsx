@@ -116,7 +116,13 @@ export default function ChatAssistant() {
                     const result = await askAssistant({ audioData: base64data, mimeType });
 
                     if (result.error) {
-                        throw new Error(result.error);
+                        const errorMessage: Message = {
+                            id: Date.now() + 1,
+                            text: result.error,
+                            sender: 'bot',
+                        };
+                        setMessages((prev) => [...prev, errorMessage]);
+                        return;
                     }
 
                     const botMessage: Message = {
@@ -175,7 +181,13 @@ export default function ChatAssistant() {
       try {
         const result = await askAssistant({ message: currentInput });
         if (result.error) {
-            throw new Error(result.error);
+             const errorMessage: Message = {
+                id: Date.now() + 1,
+                text: result.error,
+                sender: 'bot',
+            };
+            setMessages((prev) => [...prev, errorMessage]);
+            return;
         }
 
         const botMessage: Message = {
