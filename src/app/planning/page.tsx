@@ -53,7 +53,7 @@ export default function PlanningPage() {
     
     const fetchAndSetEvents = async () => {
         const calendarEvents = await fetchCalendarEvents();
-        setEvents(calendarEvents);
+        setEvents(calendarEvents || []);
     };
     fetchAndSetEvents();
 
@@ -189,193 +189,187 @@ export default function PlanningPage() {
           <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Planning</h1>
           <p className="text-muted-foreground">Planifiez vos projets, dépenses et budget.</p>
         </div>
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                      <div>
-                          <CardTitle>Plan budgétaire</CardTitle>
-                          <CardDescription>Définissez et suivez votre budget mensuel.</CardDescription>
-                      </div>
-                      <div className="flex gap-2 w-full md:w-auto">
-                          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                              <SelectTrigger className="w-full">
-                                  <SelectValue placeholder="Sélectionner un mois" />
-                              </SelectTrigger>
-                              <SelectContent>
-                              {months.map(month => (
-                                  <SelectItem key={month.value} value={month.value}>
-                                  {month.label}
-                                  </SelectItem>
-                              ))}
-                              </SelectContent>
-                          </Select>
-                          <Select value={String(selectedYear)} onValueChange={(value) => setSelectedYear(Number(value))}>
-                              <SelectTrigger className="w-full">
-                                  <SelectValue placeholder="Sélectionner une année" />
-                              </SelectTrigger>
-                              <SelectContent>
-                              {years.map(year => (
-                                  <SelectItem key={year} value={String(year)}>
-                                  {year}
-                                  </SelectItem>
-                              ))}
-                              </SelectContent>
-                          </Select>
-                      </div>
-                  </div>
-              </CardHeader>
-              <CardContent>
-                  {overBudgetItems.length > 0 && (
-                      <Alert variant="destructive" className="mb-4">
-                          <AlertTriangle className="h-4 w-4" />
-                          <AlertTitle>Attention, budget dépassé !</AlertTitle>
-                          <AlertDescription>
-                              Vous avez dépassé votre budget pour les catégories suivantes : {overBudgetItems.map(item => item.category).join(', ')}.
-                          </AlertDescription>
-                      </Alert>
-                  )}
-                  <div className="overflow-x-auto">
-                      <Table>
-                          <TableHeader>
-                              <TableRow>
-                                  <TableHead className="min-w-[150px]">Sous-catégorie</TableHead>
-                                  <TableHead className="text-right min-w-[120px]">Prévu</TableHead>
-                                  <TableHead className="text-right min-w-[120px]">Dépensé</TableHead>
-                                  <TableHead className="text-right min-w-[120px]">Restant</TableHead>
-                                  <TableHead></TableHead>
-                              </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                              {budgetWithSpent.length > 0 ? budgetWithSpent.map((item) => (
-                                  <TableRow key={item.id}>
-                                      <TableCell>
-                                          <Select
-                                              value={item.category}
-                                              onValueChange={(value) => handleCategoryChange(item.id, value as ExpenseSubCategoryType)}
-                                          >
-                                              <SelectTrigger>
-                                                  <SelectValue placeholder="Choisir une sous-catégorie" />
-                                              </SelectTrigger>
-                                              <SelectContent>
-                                                  {AllExpenseSubCategories.map((cat, index) => (
-                                                      <SelectItem key={`${cat}-${index}`} value={cat}>
-                                                          {cat}
-                                                      </SelectItem>
-                                                  ))}
-                                              </SelectContent>
-                                          </Select>
-                                      </TableCell>
-                                      <TableCell className="text-right">
-                                          <Input 
-                                              type="number" 
-                                              value={item.planned}
-                                              onChange={(e) => handlePlannedChange(item.id, Number(e.target.value))}
-                                              className="text-right" 
-                                          />
-                                      </TableCell>
-                                      <TableCell className="text-right">{formatCurrency(item.spent, currency)}</TableCell>
-                                      <TableCell className={`text-right ${item.planned - item.spent < 0 ? 'text-destructive' : ''}`}>{formatCurrency(item.planned - item.spent, currency)}</TableCell>
-                                      <TableCell>
-                                          <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)}>
-                                              <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                      </TableCell>
-                                  </TableRow>
-                              )) : (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="text-center text-muted-foreground">
-                                        Aucun budget défini pour ce mois. Ajoutez des lignes pour commencer.
+
+        <Card>
+            <CardHeader>
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div>
+                        <CardTitle>Plan budgétaire</CardTitle>
+                        <CardDescription>Définissez et suivez votre budget mensuel.</CardDescription>
+                    </div>
+                    <div className="flex gap-2 w-full md:w-auto">
+                        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Sélectionner un mois" />
+                            </SelectTrigger>
+                            <SelectContent>
+                            {months.map(month => (
+                                <SelectItem key={month.value} value={month.value}>
+                                {month.label}
+                                </SelectItem>
+                            ))}
+                            </SelectContent>
+                        </Select>
+                        <Select value={String(selectedYear)} onValueChange={(value) => setSelectedYear(Number(value))}>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Sélectionner une année" />
+                            </SelectTrigger>
+                            <SelectContent>
+                            {years.map(year => (
+                                <SelectItem key={year} value={String(year)}>
+                                {year}
+                                </SelectItem>
+                            ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent>
+                {overBudgetItems.length > 0 && (
+                    <Alert variant="destructive" className="mb-4">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Attention, budget dépassé !</AlertTitle>
+                        <AlertDescription>
+                            Vous avez dépassé votre budget pour les catégories suivantes : {overBudgetItems.map(item => item.category).join(', ')}.
+                        </AlertDescription>
+                    </Alert>
+                )}
+                <div className="overflow-x-auto">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="min-w-[150px]">Sous-catégorie</TableHead>
+                                <TableHead className="text-right min-w-[120px]">Prévu</TableHead>
+                                <TableHead className="text-right min-w-[120px]">Dépensé</TableHead>
+                                <TableHead className="text-right min-w-[120px]">Restant</TableHead>
+                                <TableHead></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {budgetWithSpent.length > 0 ? budgetWithSpent.map((item) => (
+                                <TableRow key={item.id}>
+                                    <TableCell>
+                                        <Select
+                                            value={item.category}
+                                            onValueChange={(value) => handleCategoryChange(item.id, value as ExpenseSubCategoryType)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Choisir une sous-catégorie" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {AllExpenseSubCategories.map((cat, index) => (
+                                                    <SelectItem key={`${cat}-${index}`} value={cat}>
+                                                        {cat}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Input 
+                                            type="number" 
+                                            value={item.planned}
+                                            onChange={(e) => handlePlannedChange(item.id, Number(e.target.value))}
+                                            className="text-right" 
+                                        />
+                                    </TableCell>
+                                    <TableCell className="text-right">{formatCurrency(item.spent, currency)}</TableCell>
+                                    <TableCell className={`text-right ${item.planned - item.spent < 0 ? 'text-destructive' : ''}`}>{formatCurrency(item.planned - item.spent, currency)}</TableCell>
+                                    <TableCell>
+                                        <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)}>
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
-                              )}
-                          </TableBody>
-                      </Table>
-                  </div>
-                  <div className="flex flex-col md:flex-row justify-between items-center mt-4 gap-4">
-                      <Button onClick={handleAddItem} className="w-full md:w-auto">
-                          <PlusCircle className="mr-2 h-4 w-4" />
-                          Ajouter une ligne
-                      </Button>
-                      <Button onClick={onSaveBudget} disabled={isPending || budgetItems.length === 0} className="w-full md:w-auto">
-                          <Save className="mr-2 h-4 w-4" />
-                          {isPending ? 'Enregistrement...' : 'Enregistrer le budget'}
-                      </Button>
-                  </div>
-              </CardContent>
-            </Card>
-          </div>
-          <div className="lg:col-span-1">
-              <Card>
-                  <CardHeader>
-                  <CardTitle>Calendrier</CardTitle>
-                  <CardDescription>Notez vos prévisions.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                      <div className="overflow-x-auto flex justify-center">
-                          <Calendar
-                              mode="single"
-                              selected={selectedDate}
-                              onSelect={setSelectedDate}
-                              className="rounded-md border inline-block"
-                              locale={fr}
-                          />
-                      </div>
-                      <form action={addEventFormAction} id="add-event-form" className="mt-4 space-y-4">
-                          <div>
-                              <Label htmlFor="event-description">Nouvel événement</Label>
-                              <div className='flex flex-col md:flex-row gap-2'>
-                                  <Input 
-                                      id="event-description"
-                                      name="description" 
-                                      placeholder="Ex: Facture SENELEC" 
-                                      required
-                                  />
-                                  <Input 
-                                      type="number" 
-                                      name="amount"
-                                      placeholder="Montant" 
-                                      className="md:w-[120px]"
-                                      required
-                                  />
-                                  <input type="hidden" name="date" value={selectedDate?.toISOString() || ''} />
-                              </div>
-                              {addEventState.errors?.description && <p className="text-sm text-destructive">{addEventState.errors.description[0]}</p>}
-                              {addEventState.errors?.amount && <p className="text-sm text-destructive">{addEventState.errors.amount[0]}</p>}
-                               {addEventState.errors?.date && <p className="text-sm text-destructive">{addEventState.errors.date[0]}</p>}
-                              <Button type="submit" className='w-full mt-2' disabled={isPending || !selectedDate}>Ajouter l'événement</Button>
-                          </div>
-                      </form>
-                          
-                      {selectedDate && (
-                          <div className="mt-4">
-                              <h4 className="font-medium mb-2">
-                                  Événements pour le {format(selectedDate, 'd MMMM yyyy', { locale: fr })}
-                              </h4>
-                              {eventsForSelectedDate.length > 0 ? (
-                                  <ul className='space-y-2'>
-                                      {eventsForSelectedDate.map(event => (
-                                          <li key={event.id} className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/50">
-                                              <span>{event.description} - {formatCurrency(event.amount, currency)}</span>
-                                              <Button variant="ghost" size="icon" onClick={() => handleRemoveEvent(event.id)} disabled={isPending}>
-                                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                              </Button>
-                                          </li>
-                                      ))}
-                                  </ul>
-                              ) : (
-                                  <p className="text-sm text-muted-foreground">Aucun événement pour cette date.</p>
-                              )}
-                          </div>
-                      )}
-                  </CardContent>
-              </Card>
-          </div>
-        </div>
+                            )) : (
+                              <TableRow>
+                                  <TableCell colSpan={5} className="text-center text-muted-foreground">
+                                      Aucun budget défini pour ce mois. Ajoutez des lignes pour commencer.
+                                  </TableCell>
+                              </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+                <div className="flex flex-col md:flex-row justify-between items-center mt-4 gap-4">
+                    <Button onClick={handleAddItem} className="w-full md:w-auto">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Ajouter une ligne
+                    </Button>
+                    <Button onClick={onSaveBudget} disabled={isPending || budgetItems.length === 0} className="w-full md:w-auto">
+                        <Save className="mr-2 h-4 w-4" />
+                        {isPending ? 'Enregistrement...' : 'Enregistrer le budget'}
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+            <CardTitle>Calendrier</CardTitle>
+            <CardDescription>Notez vos prévisions.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="overflow-x-auto flex justify-center">
+                    <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        className="rounded-md border inline-block"
+                        locale={fr}
+                    />
+                </div>
+                <form action={addEventFormAction} id="add-event-form" className="mt-4 space-y-4">
+                    <div>
+                        <Label htmlFor="event-description">Nouvel événement</Label>
+                        <div className='flex flex-col md:flex-row gap-2'>
+                            <Input 
+                                id="event-description"
+                                name="description" 
+                                placeholder="Ex: Facture SENELEC" 
+                                required
+                            />
+                            <Input 
+                                type="number" 
+                                name="amount"
+                                placeholder="Montant" 
+                                className="md:w-[120px]"
+                                required
+                            />
+                            <input type="hidden" name="date" value={selectedDate?.toISOString() || ''} />
+                        </div>
+                        {addEventState.errors?.description && <p className="text-sm text-destructive">{addEventState.errors.description[0]}</p>}
+                        {addEventState.errors?.amount && <p className="text-sm text-destructive">{addEventState.errors.amount[0]}</p>}
+                         {addEventState.errors?.date && <p className="text-sm text-destructive">{addEventState.errors.date[0]}</p>}
+                        <Button type="submit" className='w-full mt-2' disabled={isPending || !selectedDate}>Ajouter l'événement</Button>
+                    </div>
+                </form>
+                    
+                {selectedDate && (
+                    <div className="mt-4">
+                        <h4 className="font-medium mb-2">
+                            Événements pour le {format(selectedDate, 'd MMMM yyyy', { locale: fr })}
+                        </h4>
+                        {eventsForSelectedDate.length > 0 ? (
+                            <ul className='space-y-2'>
+                                {eventsForSelectedDate.map(event => (
+                                    <li key={event.id} className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/50">
+                                        <span>{event.description} - {formatCurrency(event.amount, currency)}</span>
+                                        <Button variant="ghost" size="icon" onClick={() => handleRemoveEvent(event.id)} disabled={isPending}>
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">Aucun événement pour cette date.</p>
+                        )}
+                    </div>
+                )}
+            </CardContent>
+        </Card>
       </div>
     </div>
   );
 }
-
-    
