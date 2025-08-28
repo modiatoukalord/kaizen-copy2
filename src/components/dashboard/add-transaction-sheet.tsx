@@ -47,7 +47,7 @@ const transactionFormSchema = z.object({
   parentCategory: z.enum(ExpenseParentCategory).optional(),
   category: z.enum(TransactionCategory),
   account: z.enum(TransactionAccount),
-  date: z.date(),
+  date: z.string().min(1, 'La date est requise'),
 });
 
 type TransactionFormValues = z.infer<typeof transactionFormSchema>;
@@ -76,7 +76,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
         parentCategory: transaction?.parentCategory || undefined,
         category: transaction?.category || 'Autre',
         account: transaction?.account || 'Banque',
-        date: transaction?.date ? new Date(transaction.date) : new Date(),
+        date: transaction?.date ? new Date(transaction.date).toISOString() : new Date().toISOString(),
     },
   });
   
@@ -90,7 +90,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
         parentCategory: transaction.parentCategory,
         category: transaction.category,
         account: transaction.account,
-        date: new Date(transaction.date),
+        date: new Date(transaction.date).toISOString(),
       });
     } else {
         form.reset({
@@ -100,7 +100,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
             parentCategory: 'Personnel',
             category: 'Autre',
             account: 'Banque',
-            date: new Date(),
+            date: new Date().toISOString(),
         });
     }
   }, [transaction, form, initialType, open]);
@@ -198,6 +198,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
     }
   };
 
+  const selectedDate = form.watch('date') ? new Date(form.watch('date')) : undefined;
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -214,7 +215,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
           className="space-y-4 py-4"
         >
           <input type="hidden" {...form.register('id')} />
-          <input type="hidden" {...form.register('date')} value={form.watch('date').toISOString()} />
+          <input type="hidden" {...form.register('date')} />
 
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
@@ -252,18 +253,18 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
                     variant={'outline'}
                     className={cn(
                       'w-full justify-start text-left font-normal',
-                      !form.watch('date') && 'text-muted-foreground'
+                      !selectedDate && 'text-muted-foreground'
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.watch('date') ? format(form.watch('date'), 'PPP', { locale: fr }) : <span>Choisir une date</span>}
+                    {selectedDate ? format(selectedDate, 'PPP', { locale: fr }) : <span>Choisir une date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
-                    selected={form.watch('date')}
-                    onSelect={(date) => date && form.setValue('date', date)}
+                    selected={selectedDate}
+                    onSelect={(date) => date && form.setValue('date', date.toISOString())}
                     initialFocus
                   />
                 </PopoverContent>
