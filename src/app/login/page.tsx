@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
-import { Landmark, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const { login, isAuthLoading, isAuthenticated } = useAuth();
@@ -63,7 +64,7 @@ export default function LoginPage() {
   if (isAuthLoading || isAuthenticated) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Landmark className="h-12 w-12 animate-pulse text-primary" />
+        <Image src="/images/icons/logo.png" alt="Chargement..." width={48} height={48} className="h-12 w-12 animate-pulse" />
       </div>
     );
   }
@@ -73,7 +74,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                <Landmark className="h-8 w-8 text-primary" />
+                <Image src="/images/icons/logo.png" alt="Le KAIZEN" width={32} height={32} className="h-8 w-8" />
             </div>
           <CardTitle className="text-2xl">{isRegistering ? 'Créer un compte' : 'Connexion'}</CardTitle>
           <CardDescription>

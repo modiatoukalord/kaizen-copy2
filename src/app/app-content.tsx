@@ -4,7 +4,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { useEffect } from 'react';
-import { Landmark } from 'lucide-react';
+import Image from 'next/image';
 import DashboardHeader from '@/components/dashboard/dashboard-header';
 import MobileNav from '@/components/dashboard/mobile-nav';
 import ChatAssistant from '@/components/assistant/chat-assistant';
@@ -25,7 +25,7 @@ export default function AppContent({ children }: { children: React.ReactNode }) 
   if (isAuthLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Landmark className="h-12 w-12 animate-pulse text-primary" />
+        <Image src="/images/icons/logo.png" alt="Chargement..." width={48} height={48} className="h-12 w-12 animate-pulse" />
       </div>
     );
   }
@@ -35,7 +35,7 @@ export default function AppContent({ children }: { children: React.ReactNode }) 
   if (!isAuthenticated && !publicRoutes.includes(pathname)) {
      return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Landmark className="h-12 w-12 animate-pulse text-primary" />
+         <Image src="/images/icons/logo.png" alt="Chargement..." width={48} height={48} className="h-12 w-12 animate-pulse" />
       </div>
     );
   }

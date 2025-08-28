@@ -12,7 +12,6 @@ import {
   type CarouselApi,
 } from '@/components/ui/carousel';
 import { Button } from '@/components/ui/button';
-import { Landmark } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 
 const onboardingSteps = [
@@ -79,7 +78,7 @@ export default function OnboardingPage() {
   if (isAuthLoading || isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Landmark className="h-12 w-12 animate-pulse text-primary" />
+        <Image src="/images/icons/logo.png" alt="Chargement..." width={48} height={48} className="h-12 w-12 animate-pulse" />
       </div>
     );
   }
