@@ -12,7 +12,7 @@ import { Loader2 } from 'lucide-react';
 import SubNavigation from '@/components/dashboard/sub-navigation';
 
 export default function SettingsPage() {
-  const { user, changePin, changeUsername } = useAuth();
+  const { user, changePin, changeUsername, changeProfilePicture } = useAuth();
   
   // State for changing PIN
   const [oldPin, setOldPin] = useState('');
@@ -24,6 +24,10 @@ export default function SettingsPage() {
   const [newUsername, setNewUsername] = useState(user?.username || '');
   const [currentPinForUsername, setCurrentPinForUsername] = useState('');
   const [isUsernameLoading, setIsUsernameLoading] = useState(false);
+
+  // State for changing profile picture
+  const [newProfilePictureUrl, setNewProfilePictureUrl] = useState(user?.profilePictureUrl || '');
+  const [isPictureLoading, setIsPictureLoading] = useState(false);
 
 
   const handlePinSubmit = async (e: React.FormEvent) => {
@@ -79,6 +83,24 @@ export default function SettingsPage() {
         toast({ variant: 'destructive', title: 'Erreur', description: error.message });
     } finally {
         setIsUsernameLoading(false);
+    }
+  };
+  
+  const handlePictureSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProfilePictureUrl) {
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Veuillez fournir une URL pour l\'image.' });
+      return;
+    }
+    
+    setIsPictureLoading(true);
+    try {
+        await changeProfilePicture(newProfilePictureUrl);
+        toast({ title: 'Succès', description: 'Votre photo de profil a été mise à jour.' });
+    } catch (error: any) {
+        toast({ variant: 'destructive', title: 'Erreur', description: error.message });
+    } finally {
+        setIsPictureLoading(false);
     }
   };
 
@@ -169,6 +191,31 @@ export default function SettingsPage() {
                         <Button type="submit" className="w-full" disabled={isPinLoading}>
                             {isPinLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Changer le code PIN
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
+             <Card className="lg:col-span-2">
+                <CardHeader>
+                    <CardTitle>Changer la photo de profil</CardTitle>
+                    <CardDescription>Mettez à jour votre photo de profil en utilisant une URL d'image.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                     <form onSubmit={handlePictureSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="newProfilePictureUrl">URL de l'image de profil</Label>
+                            <Input
+                                id="newProfilePictureUrl"
+                                type="url"
+                                value={newProfilePictureUrl}
+                                onChange={(e) => setNewProfilePictureUrl(e.target.value)}
+                                placeholder="https://example.com/image.png"
+                                required
+                            />
+                        </div>
+                        <Button type="submit" className="w-full" disabled={isPictureLoading}>
+                            {isPictureLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Mettre à jour la photo
                         </Button>
                     </form>
                 </CardContent>

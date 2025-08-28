@@ -92,7 +92,7 @@ export default function DashboardHeader() {
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="rounded-full">
                          <Avatar>
-                            <AvatarImage src={`https://i.pravatar.cc/150?u=${user?.username}`} />
+                            <AvatarImage src={user?.profilePictureUrl || `https://i.pravatar.cc/150?u=${user?.username}`} />
                             <AvatarFallback>{user?.username.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                     </Button>

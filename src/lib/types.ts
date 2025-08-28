@@ -80,6 +80,7 @@ export type ExpenseParentCategoryType = (typeof ExpenseParentCategory)[number];
 export type FirestoreUser = {
   username: string;
   pinHash: string;
+  profilePictureUrl?: string;
 };
 
 export type Transaction = {
@@ -118,3 +119,4 @@ export type CalendarEvent = {
   description: string;
   amount: number;
 };
+

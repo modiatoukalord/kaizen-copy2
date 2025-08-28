@@ -26,8 +26,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+       {
+        protocol: "https",
+        hostname: "**",
+      },
     ],
   },
 };
 
-export default process.env.NODE_ENV === 'development' ? nextConfig : withPWA(nextConfig);
+export default withPWA(nextConfig);

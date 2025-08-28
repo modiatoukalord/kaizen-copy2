@@ -4,31 +4,31 @@
 import React, { createContext, useState, useContext, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUserByUsername, createUser, updateUserByUsername } from '@/lib/data';
+import type { FirestoreUser } from '@/lib/types';
 
 type User = {
-  id: string;
   username: string;
-  pinHash: string;
+  profilePictureUrl?: string;
 };
 
 type AuthContextType = {
-  user: { username: string } | null;
+  user: User | null;
   isAuthenticated: boolean;
   isAuthLoading: boolean;
   login: (username: string, pin: string) => Promise<void>;
   logout: () => void;
   changePin: (oldPin: string, newPin: string) => Promise<void>;
   changeUsername: (newUsername: string, pin: string) => Promise<void>;
+  changeProfilePicture: (url: string) => Promise<void>;
   isRegistering: boolean;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// A mock hashing function for the PIN. In a real app, use a robust library like bcrypt.
 const mockHash = (pin: string) => `hashed-${pin}`;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<{ username: string } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
   const router = useRouter();
@@ -40,7 +40,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (sessionUserJson) {
             setUser(JSON.parse(sessionUserJson));
           } else {
-            // Check if any user exists in the DB to determine if we are in a register or login state
              const checkUser = await getUserByUsername(null); 
              setIsRegistering(!checkUser);
           }
@@ -53,34 +52,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     checkUserStatus();
   }, []);
+  
+  const handleLoginSuccess = (userData: FirestoreUser) => {
+    const currentUser: User = { 
+        username: userData.username, 
+        profilePictureUrl: userData.profilePictureUrl 
+    };
+    setUser(currentUser);
+    sessionStorage.setItem('finance-app-session', JSON.stringify(currentUser));
+    router.replace('/dashboard');
+  };
 
   const login = useCallback(async (username: string, pin: string) => {
     const existingUser = await getUserByUsername(username);
     
     if (existingUser) {
-      // Login existing user
       if (mockHash(pin) === existingUser.pinHash) {
-        const currentUser = { username: existingUser.username };
-        setUser(currentUser);
-        sessionStorage.setItem('finance-app-session', JSON.stringify(currentUser));
-        router.replace('/dashboard');
+        handleLoginSuccess(existingUser);
       } else {
         throw new Error('Nom d\'utilisateur ou code PIN incorrect.');
       }
     } else {
-       // Check if any user exists at all
        const anyUser = await getUserByUsername(null);
        if (anyUser) {
-            // If users exist but this one doesn't, it's wrong credentials
             throw new Error('Nom d\'utilisateur ou code PIN incorrect.');
        } else {
-            // No users exist, so register this new user
             const pinHash = mockHash(pin);
-            await createUser(username, pinHash);
-            const currentUser = { username };
-            setUser(currentUser);
-            sessionStorage.setItem('finance-app-session', JSON.stringify(currentUser));
-            router.replace('/dashboard');
+            const userId = await createUser(username, pinHash);
+            const newUser = await getUserByUsername(username);
+            if (newUser) {
+                handleLoginSuccess(newUser);
+            } else {
+                throw new Error("Échec de la création de l'utilisateur.");
+            }
        }
     }
   }, [router]);
@@ -115,16 +119,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error("Le code PIN est incorrect.");
     }
     
-    // Check if new username already exists
     const newUsernameExists = await getUserByUsername(newUsername);
     if (newUsernameExists) {
         throw new Error("Ce nom d'utilisateur est déjà pris.");
     }
 
     await updateUserByUsername(user.username, { username: newUsername });
-    const currentUser = { username: newUsername };
-    setUser(currentUser);
-    sessionStorage.setItem('finance-app-session', JSON.stringify(currentUser));
+    const updatedUser: User = { ...user, username: newUsername };
+    setUser(updatedUser);
+    sessionStorage.setItem('finance-app-session', JSON.stringify(updatedUser));
+  }, [user]);
+
+  const changeProfilePicture = useCallback(async (url: string) => {
+    if (!user) throw new Error("Utilisateur non connecté.");
+
+    await updateUserByUsername(user.username, { profilePictureUrl: url });
+    const updatedUser: User = { ...user, profilePictureUrl: url };
+    setUser(updatedUser);
+    sessionStorage.setItem('finance-app-session', JSON.stringify(updatedUser));
   }, [user]);
 
   const value = useMemo(() => ({
@@ -136,7 +148,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     changePin,
     changeUsername,
-  }), [user, isAuthLoading, isRegistering, login, logout, changePin, changeUsername]);
+    changeProfilePicture,
+  }), [user, isAuthLoading, isRegistering, login, logout, changePin, changeUsername, changeProfilePicture]);
 
   return (
     <AuthContext.Provider value={value}>
