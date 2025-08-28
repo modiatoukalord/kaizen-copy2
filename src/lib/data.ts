@@ -1,7 +1,7 @@
 
 import { db } from './firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, Timestamp, where, writeBatch, limit } from 'firebase/firestore';
-import type { Transaction, Transfer, BudgetItem, CalendarEvent, FirestoreUser, Account } from './types';
+import type { Transaction, Transfer, BudgetItem, CalendarEvent, FirestoreUser, Account, ExpenseSubCategoryType } from './types';
 
 
 // --- User Data ---
@@ -127,25 +127,26 @@ export const deleteTransfer = async (id: string) => {
 
 export const getBudgetItems = async (year: number, month: string): Promise<BudgetItem[]> => {
     const budgetCol = collection(db, 'budgets');
-    const q = query(budgetCol, where('year', '==', year), where('month', '==', month));
+    const q = query(budgetCol, where('year', '==', year), where('month', '==', month), limit(1));
     const budgetSnapshot = await getDocs(q);
     if (budgetSnapshot.empty) {
         return [];
     }
     // Assuming one budget doc per month/year
     const budgetDoc = budgetSnapshot.docs[0];
-    return (budgetDoc.data().items as BudgetItem[]).map(item => ({...item, id: item.id || crypto.randomUUID()}));
+    const items = budgetDoc.data().items as Omit<BudgetItem, 'id'>[];
+    return items.map(item => ({...item, id: crypto.randomUUID()}));
 };
 
-export const saveBudgetItems = async (year: number, month: string, items: BudgetItem[]) => {
+export const saveBudgetItems = async (year: number, month: string, items: { category: ExpenseSubCategoryType, planned: number }[]) => {
     const budgetCol = collection(db, 'budgets');
-    const q = query(budgetCol, where('year', '==', year), where('month', '==', month));
+    const q = query(budgetCol, where('year', '==', year), where('month', '==', month), limit(1));
     const budgetSnapshot = await getDocs(q);
 
     const dataToSave = {
         year,
         month,
-        items: items.map(({ id, ...rest }) => rest), // Don't save randomUUID to firestore
+        items,
     };
 
     if (budgetSnapshot.empty) {

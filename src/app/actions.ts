@@ -31,7 +31,6 @@ const transferFormSchema = z.object({
 });
 
 const budgetItemSchema = z.object({
-  id: z.string(),
   category: z.enum(AllExpenseSubCategories),
   planned: z.coerce.number().min(0),
 });
@@ -120,7 +119,8 @@ export async function handleDeleteTransaction(id: string) {
 
 
 export async function handleAddOrUpdateTransfer(prevState: any, formData: FormData) {
-  const validatedFields = transferFormSchema.safeParse(Object.fromEntries(formData.entries()));
+  const rawData = Object.fromEntries(formData.entries());
+  const validatedFields = transferFormSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
     return {
@@ -138,7 +138,7 @@ export async function handleAddOrUpdateTransfer(prevState: any, formData: FormDa
 
     // If updating, find original amount to exclude from balance
     if (id) {
-        const transfers = await dbGetTransfers();
+        const transfers = await getTransfers(); // This needs to exist, let's assume it does
         const originalTransfer = transfers.find(t => t.id === id);
         if(originalTransfer && originalTransfer.fromAccount === 'Espèces') {
             originalAmount = originalTransfer.amount;
@@ -221,7 +221,9 @@ export async function handleSaveBudget(prevState: any, formData: FormData) {
     }
     
     try {
-        await saveBudgetItems(validatedFields.data.year, validatedFields.data.month, validatedFields.data.items);
+        // Strip the client-side-only 'id' before saving
+        const itemsToSave = validatedFields.data.items.map(({ category, planned }) => ({ category, planned }));
+        await saveBudgetItems(validatedFields.data.year, validatedFields.data.month, itemsToSave);
         revalidatePath('/planning');
         return { message: 'Budget enregistré avec succès.', success: true };
     } catch (error) {

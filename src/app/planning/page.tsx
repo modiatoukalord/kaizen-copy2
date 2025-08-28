@@ -61,26 +61,30 @@ export default function PlanningPage() {
 
   useEffect(() => {
     const fetchAndSetBudgetItems = async () => {
-      const items = await fetchBudgetItems(selectedYear, selectedMonth);
-      if (items && items.length > 0) {
-        setBudgetItems(items);
-      } else {
-        // Set default if no budget is found for the month
-        setBudgetItems([
-          { id: crypto.randomUUID(), category: 'Nourriture', planned: 200000 },
-          { id: crypto.randomUUID(), category: 'Transport', planned: 50000 },
-          { id: crypto.randomUUID(), category: 'Divertissement', planned: 75000 },
-        ]);
-      }
+      startTransition(async () => {
+        const items = await fetchBudgetItems(selectedYear, selectedMonth);
+        if (items && items.length > 0) {
+          setBudgetItems(items);
+        } else {
+          // Set default if no budget is found for the month
+          setBudgetItems([
+            { id: crypto.randomUUID(), category: 'Nourriture', planned: 200000 },
+            { id: crypto.randomUUID(), category: 'Transport', planned: 50000 },
+            { id: crypto.randomUUID(), category: 'Divertissement', planned: 75000 },
+          ]);
+        }
+      });
     };
     fetchAndSetBudgetItems();
   }, [selectedYear, selectedMonth]);
 
   useEffect(() => {
-    if (addEventState.success) {
+    if (addEventState.success && addEventState.message) {
         toast({ title: "Succès", description: addEventState.message });
         (document.getElementById('add-event-form') as HTMLFormElement)?.reset();
-        fetchCalendarEvents().then(setEvents); // Re-fetch events
+        startTransition(() => {
+            fetchCalendarEvents().then(setEvents); // Re-fetch events
+        });
     } else if (addEventState.message && !addEventState.success) {
         toast({ variant: "destructive", title: "Erreur", description: addEventState.message });
     }
@@ -123,7 +127,7 @@ export default function PlanningPage() {
   }, [budgetItems, monthlyTransactions]);
 
   const overBudgetItems = useMemo(() => {
-    return budgetWithSpent.filter(item => item.planned - item.spent < 0);
+    return budgetWithSpent.filter(item => item.planned > 0 && item.spent > item.planned);
   }, [budgetWithSpent]);
 
   const upcomingEvents = useMemo(() => {
@@ -162,7 +166,9 @@ export default function PlanningPage() {
       const formData = new FormData();
       formData.append('year', String(selectedYear));
       formData.append('month', selectedMonth);
-      formData.append('items', JSON.stringify(budgetItems));
+      // Remove the client-side 'id' before sending to the server action
+      const itemsToSave = budgetItems.map(({ id, ...rest }) => rest);
+      formData.append('items', JSON.stringify(itemsToSave));
       const result = await handleSaveBudget(null, formData);
       if (result.success) {
         toast({ title: 'Succès', description: result.message });
@@ -279,7 +285,7 @@ export default function PlanningPage() {
                                           />
                                       </TableCell>
                                       <TableCell className="text-right">{formatCurrency(item.spent, currency)}</TableCell>
-                                      <TableCell className="text-right">{formatCurrency(item.planned - item.spent, currency)}</TableCell>
+                                      <TableCell className={`text-right ${item.planned - item.spent < 0 ? 'text-destructive' : ''}`}>{formatCurrency(item.planned - item.spent, currency)}</TableCell>
                                       <TableCell>
                                           <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)}>
                                               <Trash2 className="h-4 w-4" />
@@ -297,7 +303,7 @@ export default function PlanningPage() {
                       </Button>
                       <Button onClick={onSaveBudget} disabled={isPending} className="w-full md:w-auto">
                           <Save className="mr-2 h-4 w-4" />
-                          Enregistrer le budget
+                          {isPending ? 'Enregistrement...' : 'Enregistrer le budget'}
                       </Button>
                   </div>
               </CardContent>
@@ -325,7 +331,7 @@ export default function PlanningPage() {
                               </AlertDescription>
                           </Alert>
                       )}
-                      <div className="overflow-x-auto">
+                      <div className="overflow-x-auto flex justify-center">
                           <Calendar
                               mode="single"
                               selected={selectedDate}
@@ -342,18 +348,21 @@ export default function PlanningPage() {
                                       id="event-description"
                                       name="description" 
                                       placeholder="Ex: Facture SENELEC" 
+                                      required
                                   />
                                   <Input 
                                       type="number" 
                                       name="amount"
                                       placeholder="Montant" 
                                       className="md:w-[120px]"
+                                      required
                                   />
                                   <input type="hidden" name="date" value={selectedDate?.toISOString() || ''} />
                               </div>
                               {addEventState.errors?.description && <p className="text-sm text-destructive">{addEventState.errors.description[0]}</p>}
                               {addEventState.errors?.amount && <p className="text-sm text-destructive">{addEventState.errors.amount[0]}</p>}
-                              <Button type="submit" className='w-full mt-2'>Ajouter l'événement</Button>
+                               {addEventState.errors?.date && <p className="text-sm text-destructive">{addEventState.errors.date[0]}</p>}
+                              <Button type="submit" className='w-full mt-2' disabled={isPending || !selectedDate}>Ajouter l'événement</Button>
                           </div>
                       </form>
                           
@@ -367,7 +376,7 @@ export default function PlanningPage() {
                                       {eventsForSelectedDate.map(event => (
                                           <li key={event.id} className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/50">
                                               <span>{event.description} - {formatCurrency(event.amount, currency)}</span>
-                                              <Button variant="ghost" size="icon" onClick={() => handleRemoveEvent(event.id)}>
+                                              <Button variant="ghost" size="icon" onClick={() => handleRemoveEvent(event.id)} disabled={isPending}>
                                                   <Trash2 className="h-4 w-4 text-destructive" />
                                               </Button>
                                           </li>
