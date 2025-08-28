@@ -248,7 +248,7 @@ export default function PlanningPage() {
                               </TableRow>
                           </TableHeader>
                           <TableBody>
-                              {budgetWithSpent.map((item) => (
+                              {budgetWithSpent.length > 0 ? budgetWithSpent.map((item) => (
                                   <TableRow key={item.id}>
                                       <TableCell>
                                           <Select
@@ -283,7 +283,13 @@ export default function PlanningPage() {
                                           </Button>
                                       </TableCell>
                                   </TableRow>
-                              ))}
+                              )) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                                        Aucun budget défini pour ce mois. Ajoutez des lignes pour commencer.
+                                    </TableCell>
+                                </TableRow>
+                              )}
                           </TableBody>
                       </Table>
                   </div>
@@ -292,7 +298,7 @@ export default function PlanningPage() {
                           <PlusCircle className="mr-2 h-4 w-4" />
                           Ajouter une ligne
                       </Button>
-                      <Button onClick={onSaveBudget} disabled={isPending} className="w-full md:w-auto">
+                      <Button onClick={onSaveBudget} disabled={isPending || budgetItems.length === 0} className="w-full md:w-auto">
                           <Save className="mr-2 h-4 w-4" />
                           {isPending ? 'Enregistrement...' : 'Enregistrer le budget'}
                       </Button>
@@ -386,3 +392,5 @@ export default function PlanningPage() {
     </div>
   );
 }
+
+    
