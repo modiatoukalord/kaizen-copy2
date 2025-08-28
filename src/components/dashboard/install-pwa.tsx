@@ -49,12 +49,15 @@ const InstallPWA = () => {
     }
   };
 
+  if (!installPrompt) {
+    return null;
+  }
+
   return (
     <Button
       variant="ghost"
       size="icon"
       onClick={handleInstallClick}
-      disabled={!installPrompt}
       title="Installer l'application"
     >
       <Image src="/images/icons/logo.png" alt="Installer l'application" width={24} height={24} className="h-6 w-6" />

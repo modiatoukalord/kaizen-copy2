@@ -27,6 +27,7 @@ import {
     DropdownMenuTrigger,
   } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import Image from 'next/image';
 
 
 export default function DashboardHeader() {
@@ -49,7 +50,7 @@ export default function DashboardHeader() {
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-6">
       <div className="flex items-center gap-2">
         <Link href="/dashboard" className="flex items-center gap-2 text-lg font-semibold md:text-base">
-          <Landmark className="h-6 w-6 text-primary" />
+          <Image src="/images/icons/logo.png" alt="Le KAIZEN" width={32} height={32} className="h-8 w-8" />
           <span className="font-headline">Le KAIZEN</span>
         </Link>
       </div>
