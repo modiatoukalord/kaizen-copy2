@@ -63,16 +63,7 @@ export default function PlanningPage() {
     const fetchAndSetBudgetItems = async () => {
       startTransition(async () => {
         const items = await fetchBudgetItems(selectedYear, selectedMonth);
-        if (items && items.length > 0) {
-          setBudgetItems(items);
-        } else {
-          // Set default if no budget is found for the month
-          setBudgetItems([
-            { id: crypto.randomUUID(), category: 'Nourriture', planned: 200000 },
-            { id: crypto.randomUUID(), category: 'Transport', planned: 50000 },
-            { id: crypto.randomUUID(), category: 'Divertissement', planned: 75000 },
-          ]);
-        }
+        setBudgetItems(items || []);
       });
     };
     fetchAndSetBudgetItems();
