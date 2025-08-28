@@ -173,7 +173,7 @@ export default function SettingsPage() {
                      <form onSubmit={handlePictureSubmit} className="space-y-4">
                         <div className="flex items-center gap-4">
                             <Avatar className="h-20 w-20">
-                                <AvatarImage src={picturePreview || `https://i.pravatar.cc/150?u=${user?.username}`} alt={user?.username} />
+                                <AvatarImage src={picturePreview || undefined} alt={user?.username} />
                                 <AvatarFallback>{user?.username.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <div className="space-y-2 flex-1">
