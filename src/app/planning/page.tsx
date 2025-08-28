@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Trash2, AlertTriangle, Bell, Save } from 'lucide-react';
+import { PlusCircle, Trash2, AlertTriangle, Bell, Save, CalendarClock } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AllExpenseSubCategories } from '@/lib/types';
 import type { Category, Transaction, ExpenseSubCategoryType, BudgetItem, CalendarEvent } from '@/lib/types';
@@ -311,6 +311,25 @@ export default function PlanningPage() {
             <CardDescription>Notez vos prévisions.</CardDescription>
             </CardHeader>
             <CardContent>
+                {upcomingEvents.length > 0 && (
+                  <div className="mb-6 rounded-lg border bg-card p-4">
+                      <h4 className="mb-3 flex items-center text-lg font-semibold">
+                          <CalendarClock className="mr-2 h-5 w-5" />
+                          Événements à venir (7 prochains jours)
+                      </h4>
+                      <ul className="space-y-2">
+                          {upcomingEvents.map(event => (
+                              <li key={event.id} className="flex items-center justify-between rounded-md bg-muted/50 p-2 text-sm">
+                                  <div>
+                                      <span className="font-medium">{event.description}</span>
+                                      <span className="text-muted-foreground"> - {format(new Date(event.date), 'EEE d MMM', { locale: fr })}</span>
+                                  </div>
+                                  <span className="font-semibold">{formatCurrency(event.amount, currency)}</span>
+                              </li>
+                          ))}
+                      </ul>
+                  </div>
+                )}
                 <div className="overflow-x-auto flex justify-center">
                     <Calendar
                         mode="single"
