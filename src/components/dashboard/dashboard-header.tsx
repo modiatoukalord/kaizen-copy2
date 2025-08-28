@@ -28,6 +28,7 @@ import {
   } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import Image from 'next/image';
+import NotificationBell from './notification-bell';
 
 
 export default function DashboardHeader() {
@@ -57,6 +58,7 @@ export default function DashboardHeader() {
 
         <div className="flex flex-1 items-center justify-end gap-2">
             <InstallPWA />
+            <NotificationBell />
             <Select value={currency} onValueChange={setCurrency}>
                 <SelectTrigger className="w-[100px]">
                     <SelectValue placeholder="Devise" />
