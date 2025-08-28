@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { categorizeTransaction as categorizeTransactionFlow } from '@/ai/flows/categorize-transaction';
 import { TransactionCategory, TransactionAccount, type CategorizeTransactionInput, ExpenseParentCategory, AllExpenseSubCategories } from '@/lib/types';
-import { addTransaction as dbAddTransaction, getTransactions, updateTransaction as dbUpdateTransaction, deleteTransaction as dbDeleteTransaction, addTransfer as dbAddTransfer, updateTransfer as dbUpdateTransfer, deleteTransfer as dbDeleteTransfer, getBudgetItems, saveBudgetItems, getCalendarEvents, addCalendarEvent, deleteCalendarEvent } from '@/lib/data';
+import { addTransaction as dbAddTransaction, getTransactions, updateTransaction as dbUpdateTransaction, deleteTransaction as dbDeleteTransaction, addTransfer as dbAddTransfer, updateTransfer as dbUpdateTransfer, deleteTransfer as dbDeleteTransfer, getBudgetItems, saveBudgetItems, getCalendarEvents, addCalendarEvent, deleteCalendarEvent, getAccountBalance } from '@/lib/data';
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -52,7 +52,6 @@ const calendarEventSchema = z.object({
 export async function handleAddOrUpdateTransaction(prevState: any, formData: FormData) {
   const rawData = Object.fromEntries(formData.entries());
   
-  // Handle empty optional fields
   if (rawData.type === 'income' || !rawData.parentCategory) {
     delete rawData.parentCategory;
   }
@@ -67,6 +66,25 @@ export async function handleAddOrUpdateTransaction(prevState: any, formData: For
   }
   
   const { id, ...transactionData } = validatedFields.data;
+
+  // Check for negative cash balance
+  if (transactionData.type === 'expense' && transactionData.account === 'Espèces') {
+    const cashBalance = await getAccountBalance('Espèces');
+    let originalAmount = 0;
+    
+    // If updating, find the original transaction amount to exclude from balance calculation
+    if(id) {
+        const transactions = await getTransactions();
+        const originalTransaction = transactions.find(t => t.id === id);
+        if (originalTransaction && originalTransaction.account === 'Espèces' && originalTransaction.type === 'expense') {
+            originalAmount = originalTransaction.amount;
+        }
+    }
+
+    if (cashBalance + originalAmount < transactionData.amount) {
+      return { message: 'Opération refusée: Solde en espèces insuffisant.', errors: {}, success: false };
+    }
+  }
 
   try {
     if (id) {
@@ -113,6 +131,26 @@ export async function handleAddOrUpdateTransfer(prevState: any, formData: FormDa
   
   const { id, ...transferData } = validatedFields.data;
 
+  // Check for negative cash balance
+  if (transferData.fromAccount === 'Espèces') {
+    const cashBalance = await getAccountBalance('Espèces');
+     let originalAmount = 0;
+
+    // If updating, find original amount to exclude from balance
+    if (id) {
+        const transfers = await dbGetTransfers();
+        const originalTransfer = transfers.find(t => t.id === id);
+        if(originalTransfer && originalTransfer.fromAccount === 'Espèces') {
+            originalAmount = originalTransfer.amount;
+        }
+    }
+
+    if (cashBalance + originalAmount < transferData.amount) {
+        return { message: 'Virement refusé: Solde en espèces insuffisant.', errors: {}, success: false };
+    }
+  }
+
+
   try {
     if (id) {
         await dbUpdateTransfer({ id, ...transferData, date: new Date(transferData.date).toISOString() });
@@ -146,7 +184,7 @@ export async function suggestCategory(description: string, amount: number) {
 
   try {
     const userTransactionHistory = (await getTransactions())
-      .slice(0, 10) // Use recent history
+      .slice(0, 10) 
       .map(t => ({ description: t.description, category: t.category }));
 
     const input: CategorizeTransactionInput = {

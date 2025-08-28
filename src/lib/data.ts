@@ -1,7 +1,7 @@
 
 import { db } from './firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, Timestamp, where, writeBatch, limit } from 'firebase/firestore';
-import type { Transaction, Transfer, BudgetItem, CalendarEvent, FirestoreUser } from './types';
+import type { Transaction, Transfer, BudgetItem, CalendarEvent, FirestoreUser, Account } from './types';
 
 
 // --- User Data ---
@@ -182,4 +182,28 @@ export const addCalendarEvent = async (event: Omit<CalendarEvent, 'id'>) => {
 export const deleteCalendarEvent = async (id: string) => {
     const eventDoc = doc(db, 'calendarEvents', id);
     await deleteDoc(eventDoc);
+};
+
+// --- Balance Calculation ---
+
+export const getAccountBalance = async (account: Account): Promise<number> => {
+    const [transactions, transfers] = await Promise.all([getTransactions(), getTransfers()]);
+
+    const incomeForAccount = transactions
+        .filter(t => t.type === 'income' && t.account === account)
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    const expenseForAccount = transactions
+        .filter(t => t.type === 'expense' && t.account === account)
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    const transfersIn = transfers
+        .filter(t => t.toAccount === account)
+        .reduce((sum, t) => sum + t.amount, 0);
+        
+    const transfersOut = transfers
+        .filter(t => t.fromAccount === account)
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    return incomeForAccount - expenseForAccount + transfersIn - transfersOut;
 };
