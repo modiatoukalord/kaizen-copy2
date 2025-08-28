@@ -2,32 +2,44 @@
 
 'use client';
 
-import React, { useState, useEffect, useMemo, useTransition, useActionState } from 'react';
+import React, { useState, useEffect, useMemo, useTransition } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlusCircle, Trash2, AlertTriangle, Bell, Save, CalendarClock } from 'lucide-react';
+import { PlusCircle, Trash2, AlertTriangle, Bell, Save, CalendarClock, Pencil } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AllExpenseSubCategories } from '@/lib/types';
 import type { Category, Transaction, ExpenseSubCategoryType, BudgetItem, CalendarEvent } from '@/lib/types';
 import { getTransactions } from '@/lib/data';
-import { fetchBudgetItems, handleSaveBudget, fetchCalendarEvents, handleAddCalendarEvent, handleDeleteCalendarEvent } from '@/app/actions';
-import { format, startOfMonth, endOfMonth, isWithinInterval, getYear, isSameDay, isFuture, differenceInDays } from 'date-fns';
+import { fetchBudgetItems, handleSaveBudget, fetchCalendarEvents, handleDeleteCalendarEvent } from '@/app/actions';
+import { format, startOfMonth, endOfMonth, isWithinInterval, getYear, isSameDay, isFuture, differenceInDays, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useCurrency } from '@/contexts/currency-context';
 import { formatCurrency } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
 import SubNavigation from '@/components/dashboard/sub-navigation';
-
-const initialAddEventState = {
-  message: '',
-  errors: {},
-  success: false,
-};
+import { AddOrUpdateEventSheet } from '@/components/dashboard/add-update-event-sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+  } from "@/components/ui/dropdown-menu"
 
 
 export default function PlanningPage() {
@@ -41,7 +53,12 @@ export default function PlanningPage() {
   const [selectedYear, setSelectedYear] = useState<number>(getYear(new Date()));
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
-  const [addEventState, addEventFormAction] = useActionState(handleAddCalendarEvent, initialAddEventState);
+  const refetchEvents = () => {
+    startTransition(async () => {
+      const calendarEvents = await fetchCalendarEvents();
+      setEvents(calendarEvents || []);
+    });
+  };
 
   useEffect(() => {
     setSelectedDate(new Date());
@@ -50,13 +67,7 @@ export default function PlanningPage() {
       setTransactions(allTransactions);
     };
     fetchAndSetTransactions();
-    
-    const fetchAndSetEvents = async () => {
-        const calendarEvents = await fetchCalendarEvents();
-        setEvents(calendarEvents || []);
-    };
-    fetchAndSetEvents();
-
+    refetchEvents();
   }, []);
 
   useEffect(() => {
@@ -68,18 +79,6 @@ export default function PlanningPage() {
     };
     fetchAndSetBudgetItems();
   }, [selectedYear, selectedMonth]);
-
-  useEffect(() => {
-    if (addEventState.success && addEventState.message) {
-        toast({ title: "Succès", description: addEventState.message });
-        (document.getElementById('add-event-form') as HTMLFormElement)?.reset();
-        startTransition(() => {
-            fetchCalendarEvents().then(setEvents); // Re-fetch events
-        });
-    } else if (addEventState.message && !addEventState.success) {
-        toast({ variant: "destructive", title: "Erreur", description: addEventState.message });
-    }
-  }, [addEventState]);
 
   const years = useMemo(() => {
     const currentYear = getYear(new Date());
@@ -102,7 +101,7 @@ export default function PlanningPage() {
     const startDate = startOfMonth(new Date(selectedYear, parseInt(selectedMonth, 10) - 1));
     const endDate = endOfMonth(new Date(selectedYear, parseInt(selectedMonth, 10) - 1));
     const interval = { start: startDate, end: endDate };
-    return transactions.filter(t => t.type === 'expense' && isWithinInterval(new Date(t.date), interval));
+    return transactions.filter(t => t.type === 'expense' && isWithinInterval(parseISO(t.date), interval));
   }, [selectedMonth, selectedYear, transactions]);
 
   const budgetWithSpent = useMemo(() => {
@@ -174,7 +173,7 @@ export default function PlanningPage() {
         const result = await handleDeleteCalendarEvent(eventId);
         if (result.success) {
             toast({ title: "Succès", description: result.message });
-            fetchCalendarEvents().then(setEvents); // Re-fetch
+            refetchEvents();
         } else {
             toast({ variant: "destructive", title: "Erreur", description: result.message });
         }
@@ -189,7 +188,7 @@ export default function PlanningPage() {
           <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Planning</h1>
           <p className="text-muted-foreground">Planifiez vos projets, dépenses et budget.</p>
         </div>
-
+        
         <Card>
             <CardHeader>
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -307,29 +306,21 @@ export default function PlanningPage() {
 
         <Card>
             <CardHeader>
-            <CardTitle>Calendrier</CardTitle>
-            <CardDescription>Notez vos prévisions.</CardDescription>
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                    <div>
+                        <CardTitle>Calendrier</CardTitle>
+                        <CardDescription>Notez vos prévisions.</CardDescription>
+                    </div>
+                    <AddOrUpdateEventSheet onEventUpdate={refetchEvents} selectedDate={selectedDate}>
+                        <Button disabled={!selectedDate}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Ajouter un événement
+                        </Button>
+                    </AddOrUpdateEventSheet>
+                </div>
             </CardHeader>
-            <CardContent>
-                {upcomingEvents.length > 0 && (
-                  <div className="mb-6 rounded-lg border bg-card p-4">
-                      <h4 className="mb-3 flex items-center text-lg font-semibold">
-                          <CalendarClock className="mr-2 h-5 w-5" />
-                          Événements à venir (7 prochains jours)
-                      </h4>
-                      <ul className="space-y-2">
-                          {upcomingEvents.map(event => (
-                              <li key={event.id} className="flex items-center justify-between rounded-md bg-muted/50 p-2 text-sm">
-                                  <div>
-                                      <span className="font-medium">{event.description}</span>
-                                      <span className="text-muted-foreground"> - {format(new Date(event.date), 'EEE d MMM', { locale: fr })}</span>
-                                  </div>
-                                  <span className="font-semibold">{formatCurrency(event.amount, currency)}</span>
-                              </li>
-                          ))}
-                      </ul>
-                  </div>
-                )}
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
                 <div className="overflow-x-auto flex justify-center">
                     <Calendar
                         mode="single"
@@ -339,33 +330,30 @@ export default function PlanningPage() {
                         locale={fr}
                     />
                 </div>
-                <form action={addEventFormAction} id="add-event-form" className="mt-4 space-y-4">
-                    <div>
-                        <Label htmlFor="event-description">Nouvel événement</Label>
-                        <div className='flex flex-col md:flex-row gap-2'>
-                            <Input 
-                                id="event-description"
-                                name="description" 
-                                placeholder="Ex: Facture SENELEC" 
-                                required
-                            />
-                            <Input 
-                                type="number" 
-                                name="amount"
-                                placeholder="Montant" 
-                                className="md:w-[120px]"
-                                required
-                            />
-                            <input type="hidden" name="date" value={selectedDate?.toISOString() || ''} />
-                        </div>
-                        {addEventState.errors?.description && <p className="text-sm text-destructive">{addEventState.errors.description[0]}</p>}
-                        {addEventState.errors?.amount && <p className="text-sm text-destructive">{addEventState.errors.amount[0]}</p>}
-                         {addEventState.errors?.date && <p className="text-sm text-destructive">{addEventState.errors.date[0]}</p>}
-                        <Button type="submit" className='w-full mt-2' disabled={isPending || !selectedDate}>Ajouter l'événement</Button>
-                    </div>
-                </form>
                     
-                {selectedDate && (
+                <div>
+                    <div className="mb-6 rounded-lg border bg-card p-4">
+                        <h4 className="mb-3 flex items-center text-lg font-semibold">
+                            <CalendarClock className="mr-2 h-5 w-5" />
+                            Événements à venir (7 prochains jours)
+                        </h4>
+                        {upcomingEvents.length > 0 ? (
+                            <ul className="space-y-2">
+                                {upcomingEvents.map(event => (
+                                    <li key={event.id} className="flex items-center justify-between rounded-md bg-muted/50 p-2 text-sm">
+                                        <div>
+                                            <span className="font-medium">{event.description}</span>
+                                            <span className="text-muted-foreground"> - {format(new Date(event.date), 'EEE d MMM', { locale: fr })}</span>
+                                        </div>
+                                        <span className="font-semibold">{formatCurrency(event.amount, currency)}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                             <p className="text-sm text-muted-foreground">Aucun événement à venir.</p>
+                        )}
+                    </div>
+                    {selectedDate && (
                     <div className="mt-4">
                         <h4 className="font-medium mb-2">
                             Événements pour le {format(selectedDate, 'd MMMM yyyy', { locale: fr })}
@@ -375,9 +363,44 @@ export default function PlanningPage() {
                                 {eventsForSelectedDate.map(event => (
                                     <li key={event.id} className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/50">
                                         <span>{event.description} - {formatCurrency(event.amount, currency)}</span>
-                                        <Button variant="ghost" size="icon" onClick={() => handleRemoveEvent(event.id)} disabled={isPending}>
-                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                        </Button>
+                                        
+                                        <AlertDialog>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <Pencil className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <AddOrUpdateEventSheet event={event} onEventUpdate={refetchEvents} selectedDate={selectedDate}>
+                                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                            <Pencil className="mr-2 h-4 w-4" />
+                                                            Modifier
+                                                        </DropdownMenuItem>
+                                                    </AddOrUpdateEventSheet>
+                                                     <AlertDialogTrigger asChild>
+                                                        <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                                            <Trash2 className="mr-2 h-4 w-4" />
+                                                            Supprimer
+                                                        </DropdownMenuItem>
+                                                     </AlertDialogTrigger>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        Cette action est irréversible. L'événement sera définitivement supprimé.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleRemoveEvent(event.id)} disabled={isPending}>
+                                                        Continuer
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     </li>
                                 ))}
                             </ul>
@@ -386,6 +409,7 @@ export default function PlanningPage() {
                         )}
                     </div>
                 )}
+                </div>
             </CardContent>
         </Card>
       </div>

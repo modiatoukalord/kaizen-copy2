@@ -180,6 +180,15 @@ export const addCalendarEvent = async (event: Omit<CalendarEvent, 'id'>) => {
     });
 };
 
+export const updateCalendarEvent = async (event: CalendarEvent) => {
+    const eventDoc = doc(db, 'calendarEvents', event.id);
+    const { id, ...eventData } = event;
+    await updateDoc(eventDoc, {
+      ...eventData,
+      date: new Date(eventData.date),
+    });
+};
+
 export const deleteCalendarEvent = async (id: string) => {
     const eventDoc = doc(db, 'calendarEvents', id);
     await deleteDoc(eventDoc);

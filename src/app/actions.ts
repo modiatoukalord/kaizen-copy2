@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { categorizeTransaction as categorizeTransactionFlow } from '@/ai/flows/categorize-transaction';
 import { TransactionCategory, TransactionAccount, type CategorizeTransactionInput, ExpenseParentCategory, AllExpenseSubCategories } from '@/lib/types';
-import { addTransaction as dbAddTransaction, getTransactions, updateTransaction as dbUpdateTransaction, deleteTransaction as dbDeleteTransaction, addTransfer as dbAddTransfer, updateTransfer as dbUpdateTransfer, deleteTransfer as dbDeleteTransfer, getBudgetItems, saveBudgetItems, getCalendarEvents, addCalendarEvent, deleteCalendarEvent, getAccountBalance } from '@/lib/data';
+import { addTransaction as dbAddTransaction, getTransactions, updateTransaction as dbUpdateTransaction, deleteTransaction as dbDeleteTransaction, addTransfer as dbAddTransfer, updateTransfer as dbUpdateTransfer, deleteTransfer as dbDeleteTransfer, getBudgetItems, saveBudgetItems, getCalendarEvents, addCalendarEvent, updateCalendarEvent, deleteCalendarEvent, getAccountBalance, getTransfers } from '@/lib/data';
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -42,6 +42,7 @@ const budgetFormSchema = z.object({
 });
 
 const calendarEventSchema = z.object({
+  id: z.string().optional(),
   description: z.string().min(1, 'La description est requise'),
   amount: z.coerce.number().min(0.01, 'Le montant est requis'),
   date: z.string().min(1, 'La date est requise'),
@@ -236,7 +237,7 @@ export async function fetchCalendarEvents() {
     return getCalendarEvents();
 }
 
-export async function handleAddCalendarEvent(prevState: any, formData: FormData) {
+export async function handleAddOrUpdateCalendarEvent(prevState: any, formData: FormData) {
   const validatedFields = calendarEventSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validatedFields.success) {
@@ -247,12 +248,20 @@ export async function handleAddCalendarEvent(prevState: any, formData: FormData)
     };
   }
 
+  const { id, ...eventData } = validatedFields.data;
+  
   try {
-    await addCalendarEvent({ ...validatedFields.data, date: new Date(validatedFields.data.date).toISOString() });
-    revalidatePath('/planning');
-    return { message: 'Événement ajouté avec succès.', success: true, errors: {} };
+    if (id) {
+      await updateCalendarEvent({ ...eventData, id, date: new Date(eventData.date).toISOString() });
+      revalidatePath('/planning');
+      return { message: 'Événement mis à jour avec succès.', success: true, errors: {} };
+    } else {
+      await addCalendarEvent({ ...eventData, date: new Date(eventData.date).toISOString() });
+      revalidatePath('/planning');
+      return { message: 'Événement ajouté avec succès.', success: true, errors: {} };
+    }
   } catch (error) {
-    return { message: 'Erreur lors de l\'ajout de l\'événement.', success: false, errors: {} };
+    return { message: 'Erreur lors de l\'enregistrement de l\'événement.', success: false, errors: {} };
   }
 }
 
