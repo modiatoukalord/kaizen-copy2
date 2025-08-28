@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,6 @@ import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
 import { Loader2 } from 'lucide-react';
 import SubNavigation from '@/components/dashboard/sub-navigation';
-import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
@@ -90,50 +89,83 @@ export default function SettingsPage() {
     }
   };
   
-  const handlePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePictureChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = document.createElement('img');
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 512;
-        const MAX_HEIGHT = 512;
-        let width = img.width;
-        let height = img.height;
+    if (!file.type.startsWith('image/')) {
+        toast({ variant: 'destructive', title: 'Erreur', description: 'Veuillez sélectionner un fichier image.' });
+        return;
+    }
 
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
+    try {
+        const compressedFile = await compressImage(file);
+        setPictureFile(compressedFile);
+        setPicturePreview(URL.createObjectURL(compressedFile));
+    } catch (error: any) {
+        toast({ variant: 'destructive', title: 'Erreur de compression', description: error.message });
+    }
+  }, []);
 
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const resizedFile = new File([blob], file.name, {
-              type: 'image/jpeg',
-              lastModified: Date.now(),
-            });
-            setPictureFile(resizedFile);
-            setPicturePreview(URL.createObjectURL(resizedFile));
-          }
-        }, 'image/jpeg', 0.9); // Adjust quality
-      };
-      img.src = event.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = document.createElement('img');
+            img.src = event.target?.result as string;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 512;
+                const MAX_HEIGHT = 512;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return reject(new Error('Impossible d\'obtenir le contexte du canvas.'));
+
+                ctx.drawImage(img, 0, 0, width, height);
+
+                let quality = 0.9;
+                const MAX_SIZE_MB = 1;
+                
+                const processBlob = (blob: Blob | null) => {
+                    if (blob) {
+                        if (blob.size / 1024 / 1024 > MAX_SIZE_MB && quality > 0.1) {
+                            quality -= 0.1;
+                            canvas.toBlob(processBlob, 'image/jpeg', quality);
+                        } else {
+                            const resizedFile = new File([blob], file.name, {
+                                type: 'image/jpeg',
+                                lastModified: Date.now(),
+                            });
+                            resolve(resizedFile);
+                        }
+                    } else {
+                        reject(new Error('Impossible de créer le blob de l\'image.'));
+                    }
+                };
+
+                canvas.toBlob(processBlob, 'image/jpeg', quality);
+            };
+            img.onerror = () => reject(new Error('Impossible de charger l\'image.'));
+        };
+        reader.onerror = () => reject(new Error('Impossible de lire le fichier.'));
+    });
   };
 
   const handlePictureSubmit = async (e: React.FormEvent) => {
@@ -167,7 +199,7 @@ export default function SettingsPage() {
              <Card className="lg:col-span-2">
                 <CardHeader>
                     <CardTitle>Changer la photo de profil</CardTitle>
-                    <CardDescription>Mettez à jour votre photo de profil.</CardDescription>
+                    <CardDescription>Mettez à jour votre photo de profil (max 1Mo).</CardDescription>
                 </CardHeader>
                 <CardContent>
                      <form onSubmit={handlePictureSubmit} className="space-y-4">
