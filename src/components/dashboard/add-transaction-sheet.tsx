@@ -58,7 +58,14 @@ const initialState = {
   success: false,
 };
 
-export function AddTransactionSheet({ children, type: initialType, transaction }: { children: React.ReactNode, type?: 'income' | 'expense', transaction?: Transaction }) {
+interface AddTransactionSheetProps {
+    children: React.ReactNode;
+    type?: 'income' | 'expense';
+    transaction?: Transaction;
+    onSheetToggle?: () => void;
+}
+
+export function AddTransactionSheet({ children, type: initialType, transaction, onSheetToggle }: AddTransactionSheetProps) {
   const [open, setOpen] = React.useState(false);
   const [isSuggesting, setIsSuggesting] = React.useState(false);
   
@@ -79,6 +86,13 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
         date: transaction?.date ? new Date(transaction.date).toISOString() : new Date().toISOString(),
     },
   });
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen && onSheetToggle) {
+        onSheetToggle();
+    }
+  }
   
   React.useEffect(() => {
     if (transaction) {
@@ -143,7 +157,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
         title: 'Succès!',
         description: state.message,
       });
-      setOpen(false);
+      handleOpenChange(false);
       form.reset();
     } else if (state.message && Object.keys(state.errors || {}).length > 0) {
       toast({
@@ -201,7 +215,7 @@ export function AddTransactionSheet({ children, type: initialType, transaction }
   const selectedDate = form.watch('date') ? new Date(form.watch('date')) : undefined;
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent>
         <SheetHeader>

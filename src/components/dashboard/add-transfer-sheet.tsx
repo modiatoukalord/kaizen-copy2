@@ -59,7 +59,13 @@ const initialState = {
   success: false,
 };
 
-export function AddTransferSheet({ children, transfer }: { children: React.ReactNode, transfer?: Transfer }) {
+interface AddTransferSheetProps {
+    children: React.ReactNode;
+    transfer?: Transfer;
+    onSheetToggle?: () => void;
+}
+
+export function AddTransferSheet({ children, transfer, onSheetToggle }: AddTransferSheetProps) {
   const [open, setOpen] = React.useState(false);
   const isEditing = !!transfer;
   
@@ -76,6 +82,13 @@ export function AddTransferSheet({ children, transfer }: { children: React.React
         date: transfer?.date ? new Date(transfer.date) : new Date(),
     },
   });
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen && onSheetToggle) {
+        onSheetToggle();
+    }
+  }
   
   React.useEffect(() => {
     if (transfer) {
@@ -105,7 +118,7 @@ export function AddTransferSheet({ children, transfer }: { children: React.React
         title: 'Succès!',
         description: state.message,
       });
-      setOpen(false);
+      handleOpenChange(false);
       form.reset();
     } else if (state.message && Object.keys(state.errors || {}).length > 0) {
       toast({
@@ -130,7 +143,7 @@ export function AddTransferSheet({ children, transfer }: { children: React.React
 
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent>
         <SheetHeader>

@@ -14,7 +14,7 @@ import { AddTransferSheet } from './add-transfer-sheet';
 
 export default function MobileNav() {
     const pathname = usePathname();
-    const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [isActionsSheetOpen, setIsActionsSheetOpen] = useState(false);
     const [isAddSheetOpen, setAddSheetOpen] = useState(false);
     const { isAuthenticated } = useAuth();
 
@@ -65,20 +65,20 @@ export default function MobileNav() {
                                 <SheetDescription>Que souhaitez-vous ajouter ?</SheetDescription>
                             </SheetHeader>
                             <div className="grid gap-3 py-4">
-                                <AddTransactionSheet type="income">
-                                    <Button variant="ghost" className='justify-start text-base p-3 h-auto' onClick={() => setAddSheetOpen(false)}>
+                                <AddTransactionSheet type="income" onSheetToggle={() => setAddSheetOpen(false)}>
+                                    <Button variant="ghost" className='justify-start text-base p-3 h-auto'>
                                         <TrendingUp className="mr-3 h-5 w-5" />
                                         Ajouter un revenu
                                     </Button>
                                 </AddTransactionSheet>
-                                <AddTransactionSheet type="expense">
-                                     <Button variant="ghost" className='justify-start text-base p-3 h-auto' onClick={() => setAddSheetOpen(false)}>
+                                <AddTransactionSheet type="expense" onSheetToggle={() => setAddSheetOpen(false)}>
+                                     <Button variant="ghost" className='justify-start text-base p-3 h-auto'>
                                         <TrendingDown className="mr-3 h-5 w-5" />
                                         Ajouter une dépense
                                     </Button>
                                 </AddTransactionSheet>
-                                 <AddTransferSheet>
-                                     <Button variant="ghost" className='justify-start text-base p-3 h-auto' onClick={() => setAddSheetOpen(false)}>
+                                 <AddTransferSheet onSheetToggle={() => setAddSheetOpen(false)}>
+                                     <Button variant="ghost" className='justify-start text-base p-3 h-auto'>
                                         <ArrowLeftRight className="mr-3 h-5 w-5" />
                                         Ajouter un virement
                                     </Button>
@@ -98,7 +98,7 @@ export default function MobileNav() {
                     )
                 })}
 
-                <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                <Sheet open={isActionsSheetOpen} onOpenChange={setIsActionsSheetOpen}>
                     <SheetTrigger asChild>
                         <button className="flex flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground">
                             <Repeat className="h-5 w-5" />
@@ -114,7 +114,7 @@ export default function MobileNav() {
                             {actionsNavItems.map((item) => {
                                 const isActive = pathname.startsWith(item.href);
                                 return (
-                                    <Link key={item.href} href={item.href} onClick={() => setIsSheetOpen(false)} className={cn("flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary text-base", isActive && "bg-muted text-primary")}>
+                                    <Link key={item.href} href={item.href} onClick={() => setIsActionsSheetOpen(false)} className={cn("flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary text-base", isActive && "bg-muted text-primary")}>
                                         <item.icon className="h-5 w-5" />
                                         {item.label}
                                     </Link>
