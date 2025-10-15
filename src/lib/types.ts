@@ -22,6 +22,7 @@ export const ExpenseSubCategory = {
     'Remboursement',
     'Vacances et voyage',
     'Vêtements et accessoires',
+    'Transport',
   ],
   Maison: [
     'Assurances',
@@ -29,24 +30,28 @@ export const ExpenseSubCategory = {
     'Factures',
     'Travaux'
   ],
-  Transport: [
-    'Transport'
-  ]
+  Banque: [
+    'Frais bancaires',
+    'Agios',
+    'Autre'
+    ]
 } as const;
 
 const allSubCategories = [
     ...ExpenseSubCategory.Personnel,
     ...ExpenseSubCategory.Maison,
-    ...ExpenseSubCategory.Transport,
+    ...ExpenseSubCategory.Banque,
 ];
 
 export const AllExpenseSubCategories = [...new Set(allSubCategories)].sort((a,b) => a.localeCompare(b)) as (
+  'Agios' |
   'Aide sociale' |
   'Assurances' |
   'Autre' |
   'Divertissement' |
   'Equipements maison' |
   'Factures' |
+  'Frais bancaires' |
   'Investissement' |
   'Nourriture' |
   'Prêt' |
@@ -123,5 +128,6 @@ export type CalendarEvent = {
   amount: number;
   status: CalendarEventStatusType;
 };
+
 
 

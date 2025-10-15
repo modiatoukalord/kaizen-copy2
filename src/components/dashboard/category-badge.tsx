@@ -43,6 +43,8 @@ export const categoryIcons: Record<Category, LucideIcon> = {
   'Vacances et voyage': Plane,
   Factures: FileText,
   Assurances: Shield,
+  'Frais bancaires': Landmark,
+  Agios: Landmark,
 };
 
 interface CategoryBadgeProps {
