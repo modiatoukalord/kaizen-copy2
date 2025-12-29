@@ -5,8 +5,8 @@ import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { categorizeTransaction as categorizeTransactionFlow } from '@/ai/flows/categorize-transaction';
 import { TransactionCategory, TransactionAccount, type CategorizeTransactionInput, ExpenseParentCategory, AllExpenseSubCategories, CalendarEventStatus } from '@/lib/types';
-import type { CalendarEventStatusType } from '@/lib/types';
-import { addTransaction as dbAddTransaction, getTransactions, updateTransaction as dbUpdateTransaction, deleteTransaction as dbDeleteTransaction, addTransfer as dbAddTransfer, updateTransfer as dbUpdateTransfer, deleteTransfer as dbDeleteTransfer, getBudgetItems, saveBudgetItems, getCalendarEvents, addCalendarEvent, updateCalendarEvent, deleteCalendarEvent, getAccountBalance, getTransfers } from '@/lib/data';
+import type { CalendarEventStatusType, ProjectionItem, Projection } from '@/lib/types';
+import { addTransaction as dbAddTransaction, getTransactions, updateTransaction as dbUpdateTransaction, deleteTransaction as dbDeleteTransaction, addTransfer as dbAddTransfer, updateTransfer as dbUpdateTransfer, deleteTransfer as dbDeleteTransfer, getBudgetItems, saveBudgetItems, getCalendarEvents, addCalendarEvent, updateCalendarEvent, deleteCalendarEvent, getAccountBalance, getTransfers, saveProjection, deleteProjection } from '@/lib/data';
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -53,6 +53,21 @@ const calendarEventSchema = z.object({
 const updateCalendarEventStatusSchema = z.object({
     id: z.string(),
     status: z.enum(CalendarEventStatus),
+});
+
+const projectionItemSchema = z.object({
+  id: z.string(),
+  description: z.string(),
+  amount: z.coerce.number(),
+  type: z.enum(['once', 'recurring']),
+});
+
+const projectionSchema = z.object({
+  name: z.string().min(1, 'Le nom de la projection est requis.'),
+  initialBalance: z.coerce.number(),
+  projectionMonths: z.coerce.number(),
+  incomes: z.array(projectionItemSchema),
+  expenses: z.array(projectionItemSchema),
 });
 
 
@@ -304,6 +319,46 @@ export async function handleUpdateCalendarEventStatus(id: string, status: Calend
     } catch (error) {
         return { message: 'Erreur lors de la mise à jour du statut.', success: false };
     }
+}
+
+export async function handleSaveProjection(prevState: any, formData: FormData) {
+  const rawData = {
+    name: formData.get('name'),
+    initialBalance: formData.get('initialBalance'),
+    projectionMonths: formData.get('projectionMonths'),
+    incomes: JSON.parse(formData.get('incomes') as string),
+    expenses: JSON.parse(formData.get('expenses') as string),
+  };
+
+  const validatedFields = projectionSchema.safeParse(rawData);
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Erreur: Veuillez vérifier les champs du formulaire.',
+      success: false,
+    };
+  }
+
+  try {
+    await saveProjection(validatedFields.data);
+    revalidatePath('/projection');
+    return { message: 'Projection sauvegardée avec succès.', success: true, errors: {} };
+  } catch (error) {
+    console.error(error);
+    return { message: "Erreur lors de la sauvegarde de la projection.", success: false, errors: {} };
+  }
+}
+
+export async function handleDeleteProjection(id: string) {
+  try {
+    await deleteProjection(id);
+    revalidatePath('/projection');
+    return { message: 'Projection supprimée avec succès.', success: true };
+  } catch (error) {
+    console.error(error);
+    return { message: 'Erreur lors de la suppression de la projection.', success: false };
+  }
 }
 
 interface AskAssistantPayload {

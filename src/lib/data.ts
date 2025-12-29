@@ -1,7 +1,8 @@
 
+
 import { db } from './firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, Timestamp, where, writeBatch, limit } from 'firebase/firestore';
-import type { Transaction, Transfer, BudgetItem, CalendarEvent, FirestoreUser, Account, ExpenseSubCategoryType } from './types';
+import type { Transaction, Transfer, BudgetItem, CalendarEvent, FirestoreUser, Account, ExpenseSubCategoryType, Projection } from './types';
 
 
 // --- User Data ---
@@ -194,6 +195,36 @@ export const deleteCalendarEvent = async (id: string) => {
     const eventDoc = doc(db, 'calendarEvents', id);
     await deleteDoc(eventDoc);
 };
+
+// --- Projection Page Data ---
+export const getProjections = async (): Promise<Projection[]> => {
+  const projectionsCol = collection(db, 'projections');
+  const q = query(projectionsCol, orderBy('createdAt', 'desc'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      createdAt: (data.createdAt as Timestamp).toDate().toISOString(),
+    } as Projection;
+  });
+};
+
+export const saveProjection = async (projection: Omit<Projection, 'id' | 'createdAt'>): Promise<string> => {
+  const projectionsCol = collection(db, 'projections');
+  const docRef = await addDoc(projectionsCol, {
+    ...projection,
+    createdAt: new Date(),
+  });
+  return docRef.id;
+};
+
+export const deleteProjection = async (id: string): Promise<void> => {
+  const projectionDoc = doc(db, 'projections', id);
+  await deleteDoc(projectionDoc);
+};
+
 
 // --- Balance Calculation ---
 

@@ -126,3 +126,21 @@ export type CalendarEvent = {
   amount: number;
   status: CalendarEventStatusType;
 };
+
+export type ProjectionItem = {
+  id: string;
+  description: string;
+  amount: number;
+  type: 'once' | 'recurring';
+};
+
+export type Projection = {
+  id: string;
+  name: string;
+  initialBalance: number;
+  projectionMonths: number;
+  incomes: ProjectionItem[];
+  expenses: ProjectionItem[];
+  createdAt: string; // ISO 8601 format
+};
+
