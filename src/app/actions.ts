@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { categorizeTransaction as categorizeTransactionFlow } from '@/ai/flows/categorize-transaction';
 import { TransactionCategory, TransactionAccount, type CategorizeTransactionInput, ExpenseParentCategory, AllExpenseSubCategories, CalendarEventStatus } from '@/lib/types';
 import type { CalendarEventStatusType, ProjectionItem, Projection } from '@/lib/types';
-import { addTransaction as dbAddTransaction, getTransactions, updateTransaction as dbUpdateTransaction, deleteTransaction as dbDeleteTransaction, addTransfer as dbAddTransfer, updateTransfer as dbUpdateTransfer, deleteTransfer as dbDeleteTransfer, getBudgetItems, saveBudgetItems, getCalendarEvents, addCalendarEvent, updateCalendarEvent, deleteCalendarEvent, getAccountBalance, getTransfers, saveProjection, deleteProjection } from '@/lib/data';
+import { addTransaction as dbAddTransaction, getTransactions, updateTransaction as dbUpdateTransaction, deleteTransaction as dbDeleteTransaction, addTransfer as dbAddTransfer, updateTransfer as dbUpdateTransfer, deleteTransfer as dbDeleteTransfer, getBudgetItems, saveBudgetItems, getCalendarEvents, addCalendarEvent, updateCalendarEvent, deleteCalendarEvent, getAccountBalance, getTransfers, saveProjection, deleteProjection, getProjections as dbGetProjections } from '@/lib/data';
 
 const formSchema = z.object({
   id: z.string().optional(),
@@ -321,6 +321,10 @@ export async function handleUpdateCalendarEventStatus(id: string, status: Calend
     }
 }
 
+export async function getProjections() {
+    return dbGetProjections();
+}
+
 export async function handleSaveProjection(prevState: any, formData: FormData) {
   const rawData = {
     name: formData.get('name'),
@@ -399,3 +403,5 @@ export async function askAssistant(payload: AskAssistantPayload): Promise<{ repl
     return { error: "Une erreur est survenue lors de la communication avec l'assistant. Veuillez réessayer." };
   }
 }
+
+    
