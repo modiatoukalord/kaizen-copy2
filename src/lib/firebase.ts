@@ -5,12 +5,13 @@ import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+  apiKey: "AIzaSyDPryWI1Z_HAfdZ8TOTiSqQql47bu7XP4E",
+  authDomain: "kheops-game.firebaseapp.com",
+  projectId: "kheops-game",
+  storageBucket: "kheops-game.appspot.com",
+  messagingSenderId: "61326874413",
+  appId: "1:61326874413:web:8fd874d77e1e45391365a4",
+  measurementId: "G-6GKV4HCBCS"
 };
 
 // Initialize Firebase
